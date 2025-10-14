@@ -746,9 +746,9 @@ const createDefaultAdmin = async () => {
   try {
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 12);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 12);
       const defaultAdmin = new Admin({
-        email: 'admin@elegance.com',
+        email: process.env.ADMIN_EMAIL || 'admin@elegance.com',
         password: hashedPassword,
         name: 'Main Admin',
         role: 'main',
