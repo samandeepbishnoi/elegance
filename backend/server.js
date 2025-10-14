@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import natural from 'natural';
 import { cosineSimilarity, getProductText } from './utils/similarity.js';
 
@@ -14,6 +15,13 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Uploads directory created');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -23,6 +31,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
+    'https://elegance-frontend.onrender.com',
     process.env.VITE_FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
@@ -81,7 +90,12 @@ const StoreStatus = mongoose.model('StoreStatus', storeStatusSchema);
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadsPath = path.join(__dirname, 'uploads');
+    // Ensure uploads directory exists
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+    cb(null, uploadsPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -737,8 +751,25 @@ Now analyze the user's query and provide the JSON response.`
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Jewelry Catalog API is running' });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Check database connection
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    
+    res.json({ 
+      status: 'OK', 
+      message: 'Jewelry Catalog API is running',
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      message: 'Health check failed',
+      error: error.message 
+    });
+  }
 });
 
 // Create default admin user
@@ -754,7 +785,7 @@ const createDefaultAdmin = async () => {
         role: 'main',
       });
       await defaultAdmin.save();
-      console.log('Default main admin user created: admin@elegance.com / admin123');
+      console.log(`Default main admin user created: ${process.env.ADMIN_EMAIL || 'admin@elegance.com'}`);
     }
   } catch (error) {
     console.error('Error creating default admin:', error);
