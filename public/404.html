@@ -4,14 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elegance</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <style>
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f9fafb;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript">
-        // Redirect to home page for SPA routing
-        window.location.replace('/');
+        // Store the current path for SPA routing
+        var currentPath = window.location.pathname;
+        var currentSearch = window.location.search;
+        var currentHash = window.location.hash;
+        
+        // Use sessionStorage to preserve the intended route
+        sessionStorage.setItem('redirect', currentPath + currentSearch + currentHash);
+        
+        // Redirect to index.html which will load the React app
+        window.location.replace('/index.html');
     </script>
     <noscript>
-        <meta http-equiv="refresh" content="0; url=/" />
+        <meta http-equiv="refresh" content="0; url=/index.html" />
     </noscript>
 </body>
 </html>
