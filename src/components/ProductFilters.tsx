@@ -60,8 +60,9 @@ const ProductFilters: React.FC<FilterProps> = ({
     (priceRange[0] > MIN_PRICE || priceRange[1] < MAX_PRICE);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-lg shadow-md flex flex-col max-h-[calc(100vh-7rem)]">
+      {/* Fixed Header */}
+      <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 flex-shrink-0">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
           <Filter className="h-5 w-5 mr-2 text-gold-500" />
           Filters
@@ -77,8 +78,10 @@ const ProductFilters: React.FC<FilterProps> = ({
         )}
       </div>
 
-      {/* Categories */}
-      <div className="mb-6">
+      {/* Scrollable Content */}
+      <div className="overflow-y-auto flex-1 p-6 pt-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+        {/* Categories */}
+        <div className="mb-6">
         <h4 className="font-medium text-gray-900 mb-3">Category</h4>
         <div className="space-y-2">
           <label className="flex items-center">
@@ -196,21 +199,22 @@ const ProductFilters: React.FC<FilterProps> = ({
         </div>
       </div>
 
-      {/* Tags */}
-      <div className="mb-6">
-        <h4 className="font-medium text-gray-900 mb-3">Tags</h4>
-        <div className="space-y-2">
-          {tags.map((tag) => (
-            <label key={tag} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={selectedTags.includes(tag)}
-                onChange={() => onTagChange(tag)}
-                className="mr-2 text-gold-500 focus:ring-gold-500"
-              />
-              <span className="text-gray-700 capitalize">{tag}</span>
-            </label>
-          ))}
+        {/* Tags */}
+        <div className="mb-6">
+          <h4 className="font-medium text-gray-900 mb-3">Tags</h4>
+          <div className="space-y-2">
+            {tags.map((tag) => (
+              <label key={tag} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedTags.includes(tag)}
+                  onChange={() => onTagChange(tag)}
+                  className="mr-2 text-gold-500 focus:ring-gold-500"
+                />
+                <span className="text-gray-700 capitalize">{tag}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
     </div>

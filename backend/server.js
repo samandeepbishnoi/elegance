@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import natural from 'natural';
-import { cosineSimilarity, getProductText } from './utils/similarity.js';
+import { cosineSimilarity, getProductText, calculateWeightedSimilarity } from './utils/similarity.js';
 
 dotenv.config();
 
@@ -323,18 +323,14 @@ app.get('/api/products/:id/recommendations', async (req, res) => {
       tfidf.addDocument(getProductText(product));
     });
 
-    const targetTerms = tfidf.listTerms(0);
-    const targetVector = targetTerms.map(t => t.tfidf);
-
     const similarities = allProducts.map((product, index) => {
-      const productTerms = tfidf.listTerms(index + 1);
-      const productVector = productTerms.map(t => t.tfidf);
-
-      const maxLength = Math.max(targetVector.length, productVector.length);
-      const paddedTargetVector = [...targetVector, ...Array(maxLength - targetVector.length).fill(0)];
-      const paddedProductVector = [...productVector, ...Array(maxLength - productVector.length).fill(0)];
-
-      const similarity = cosineSimilarity(paddedTargetVector, paddedProductVector);
+      const similarity = calculateWeightedSimilarity(
+        targetProduct, 
+        product, 
+        tfidf, 
+        0, // target product is at index 0
+        index + 1 // comparison products start at index 1
+      );
 
       return {
         product,

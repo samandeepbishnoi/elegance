@@ -35,6 +35,11 @@ const ProductDetail: React.FC = () => {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
+  // Scroll to top when component mounts or id changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -127,7 +132,7 @@ const ProductDetail: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/catalog')}
           className="flex items-center text-gray-600 hover:text-gold-600 transition-colors mb-8"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
@@ -137,11 +142,11 @@ const ProductDetail: React.FC = () => {
         <div className="lg:grid lg:grid-cols-2 lg:gap-12">
           {/* Product Images */}
           <div className="mb-8 lg:mb-0">
-            <div className="aspect-square rounded-lg overflow-hidden bg-white mb-4">
+            <div className="aspect-square rounded-lg overflow-hidden bg-white mb-4 flex items-center justify-center">
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-96 object-cover rounded-lg mb-4"
+                  className="w-full h-full object-contain"
                 />
               </div>
           </div>
