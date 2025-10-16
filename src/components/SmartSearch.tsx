@@ -30,24 +30,68 @@ const SmartSearch: React.FC<SmartSearchProps> = ({ className = '' }) => {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  // Fetch products from backend
+  const fetchProducts = async () => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`${backendUrl}/api/products`);
-        if (res.ok) {
-          const data = await res.json();
-          setAllProducts(data);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
+    try {
+      const res = await fetch(`${backendUrl}/api/products`);
+      if (res.ok) {
+        const data = await res.json();
+        setAllProducts(data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  // Update recently viewed from localStorage
+  const updateRecentlyViewed = () => {
+    setRecentlyViewed(getRecentlyViewed());
+  };
+
+  // Initial fetch
+  useEffect(() => {
     fetchProducts();
+    updateRecentlyViewed();
   }, []);
 
+  // Refresh trending products periodically (every 30 seconds)
   useEffect(() => {
-    setRecentlyViewed(getRecentlyViewed());
+    const interval = setInterval(() => {
+      if (filter === 'trending') {
+        fetchProducts();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [filter]);
+
+  // Update recently viewed when dropdown opens or filter changes to recent
+  useEffect(() => {
+    if (isDropdownOpen && filter === 'recent') {
+      updateRecentlyViewed();
+    }
+  }, [isDropdownOpen, filter]);
+
+  // Listen for storage changes (when recently viewed is updated in another tab or by the app)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'recentlyViewedProducts') {
+        updateRecentlyViewed();
+      }
+    };
+
+    const handleCustomEvent = () => {
+      updateRecentlyViewed();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('recentlyViewedUpdated', handleCustomEvent);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('recentlyViewedUpdated', handleCustomEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -114,6 +158,13 @@ const SmartSearch: React.FC<SmartSearchProps> = ({ className = '' }) => {
     setFilter(newFilter);
     setIsDropdownOpen(true);
     setSearchQuery('');
+    
+    // Refresh data when switching filters
+    if (newFilter === 'trending') {
+      fetchProducts();
+    } else if (newFilter === 'recent') {
+      updateRecentlyViewed();
+    }
   };
 
   const formatPrice = (price: number) => {
