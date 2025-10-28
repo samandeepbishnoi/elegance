@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power } from 'lucide-react';
+import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power, Users, Ticket, Tag, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import CouponManagement from '../components/CouponManagement';
@@ -407,45 +407,81 @@ const AdminDashboard: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Add Product Button */}
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Add Product Card */}
             <button
               onClick={() => setShowForm(true)}
-              className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors flex items-center justify-center"
+              className="group relative bg-gradient-to-br from-gold-500 to-gold-600 dark:from-gold-600 dark:to-gold-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
-              <Plus className="h-5 w-5 mr-2" />
-              Add New Product
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
+                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Package className="h-8 w-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">Add Product</h3>
+                <p className="text-sm text-white/80">Create new listing</p>
+              </div>
             </button>
 
-            {/* Manage Admins Button */}
+            {/* Manage Admins Card */}
             {isMainAdmin && (
               <button
                 onClick={() => setShowAdminManagement(!showAdminManagement)}
-                className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center relative"
+                className="group relative bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
               >
-                {showAdminManagement ? 'Hide Admin Management' : 'Manage Admins'}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
                 {pendingAdmins.length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs absolute -top-2 -right-2">
-                    {pendingAdmins.length}
-                  </span>
+                  <div className="absolute top-3 right-3 z-10">
+                    <span className="flex items-center justify-center bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                      {pendingAdmins.length}
+                    </span>
+                  </div>
                 )}
+                <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
+                  <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">
+                    {showAdminManagement ? 'Hide Admins' : 'Manage Admins'}
+                  </h3>
+                  <p className="text-sm text-white/80">Control access</p>
+                </div>
               </button>
             )}
 
-            {/* Manage Coupons Button */}
+            {/* Manage Coupons Card */}
             <button
               onClick={() => setShowCouponManagement(!showCouponManagement)}
-              className="bg-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center"
+              className="group relative bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
-              {showCouponManagement ? 'Hide Coupon Management' : 'Manage Coupons'}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
+                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Ticket className="h-8 w-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">
+                  {showCouponManagement ? 'Hide Coupons' : 'Manage Coupons'}
+                </h3>
+                <p className="text-sm text-white/80">Promo codes</p>
+              </div>
             </button>
 
-            {/* Manage Discounts Button */}
+            {/* Manage Discounts Card */}
             <button
               onClick={() => setShowDiscountManagement(!showDiscountManagement)}
-              className="bg-indigo-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center justify-center"
+              className="group relative bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
-              {showDiscountManagement ? 'Hide Discount Management' : 'Manage Discounts'}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
+                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Tag className="h-8 w-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">
+                  {showDiscountManagement ? 'Hide Discounts' : 'Manage Discounts'}
+                </h3>
+                <p className="text-sm text-white/80">Price reductions</p>
+              </div>
             </button>
           </div>
         </div>
