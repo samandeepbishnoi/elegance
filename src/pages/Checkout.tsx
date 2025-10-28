@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Tag, X, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Tag, X, CheckCircle, ShoppingBag, Sparkles, Gift, User, Mail, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CustomerInfo {
   name: string;
@@ -331,48 +332,103 @@ Thank you for choosing Elegance Jewelry! 💍
 
   if (state.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-20">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-4">
-            No Items to Checkout
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Add some beautiful jewelry pieces to your cart first!
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-gold-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors"
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 py-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="relative inline-block mb-6"
           >
-            Continue Shopping
-          </button>
-        </div>
+            <div className="absolute inset-0 bg-gold-200/30 rounded-full blur-2xl"></div>
+            <ShoppingBag className="h-32 w-32 text-gold-300 mx-auto relative" strokeWidth={1.5} />
+          </motion.div>
+          
+          <motion.h2 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-4xl font-serif font-bold text-gray-900 mb-4"
+          >
+            No Items to Checkout
+          </motion.h2>
+          
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-gray-600 mb-8 text-lg"
+          >
+            Add some beautiful jewelry pieces to your cart first!
+          </motion.p>
+          
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            onClick={() => navigate('/catalog')}
+            className="group bg-gradient-to-r from-gold-500 to-gold-600 text-white px-10 py-4 rounded-full font-medium hover:from-gold-600 hover:to-gold-700 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+          >
+            <Sparkles className="h-5 w-5" />
+            Explore Collection
+            <ArrowLeft className="h-5 w-5 rotate-180 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/cart')}
-          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gold-600 dark:hover:text-gold-400 transition-colors mb-8"
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to Cart
-        </button>
+          <button
+            onClick={() => navigate('/cart')}
+            className="group flex items-center text-gray-600 hover:text-gold-600 transition-colors mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium text-sm">Back to Cart</span>
+          </button>
 
-        <h1 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-1.5 bg-gold-100 rounded-lg">
+              <CreditCard className="h-5 w-5 text-gold-600" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Secure Checkout</h1>
+          </div>
+          <p className="text-sm text-gray-600 ml-10">Complete your order in just a few steps</p>
+        </motion.div>
 
-        <div className="lg:grid lg:grid-cols-2 lg:gap-8">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6">
           {/* Customer Information Form */}
-          <div className="mb-8 lg:mb-0">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Customer Information</h2>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="lg:col-span-7 mb-6 lg:mb-0"
+          >
+            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-gray-100">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="p-1.5 bg-gold-50 rounded-lg">
+                  <User className="h-4 w-4 text-gold-600" />
+                </div>
+                <h2 className="text-xl font-serif font-semibold text-gray-900">Customer Information</h2>
+              </div>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {/* Full Name */}
+                <div className="group">
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <User className="h-4 w-4 text-gold-600" />
                     Full Name *
                   </label>
                   <input
@@ -382,13 +438,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Enter your full name"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* Phone Number */}
+                <div className="group">
+                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gold-600" />
                     Phone Number *
                   </label>
                   <input
@@ -398,13 +456,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.phone}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Enter your phone number"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* Email Address */}
+                <div className="group">
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gold-600" />
                     Email Address
                   </label>
                   <input
@@ -413,13 +473,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     name="email"
                     value={customerInfo.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Enter your email address"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* Address */}
+                <div className="group">
+                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gold-600" />
                     Address *
                   </label>
                   <input
@@ -429,13 +491,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.address}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Enter your complete address"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* Pin Code */}
+                <div className="group">
+                  <label htmlFor="pincode" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gold-600" />
                     Pin Code *
                   </label>
                   <input
@@ -445,13 +509,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.pincode}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Enter your pin code"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {/* Special Notes */}
+                <div className="group">
+                  <label htmlFor="notes" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-gold-600" />
                     Special Notes
                   </label>
                   <textarea
@@ -460,39 +526,65 @@ Thank you for choosing Elegance Jewelry! 💍
                     rows={3}
                     value={customerInfo.notes}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400 resize-none"
                     placeholder="Ring size, special instructions, etc."
                   />
                 </div>
 
-                <button
+                {/* Submit Button */}
+                <motion.button
                   type="submit"
                   disabled={!isOnline}
-                  className={`w-full py-4 rounded-lg font-medium transition-colors flex items-center justify-center ${
+                  whileHover={{ scale: isOnline ? 1.02 : 1 }}
+                  whileTap={{ scale: isOnline ? 0.98 : 1 }}
+                  className={`w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center gap-2 text-base shadow-lg ${
                     isOnline
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-gray-400 cursor-not-allowed text-gray-200'
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-green-500/30 hover:shadow-xl'
+                      : 'bg-gray-300 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  {isOnline ? 'Place Order via WhatsApp' : 'Store Offline - Orders Paused'}
-                </button>
+                  <MessageCircle className="h-5 w-5" />
+                  {isOnline ? 'Complete Order via WhatsApp' : 'Store Offline - Orders Paused'}
+                </motion.button>
+
+                {/* Security Badge */}
+                {isOnline && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Secure checkout powered by WhatsApp</span>
+                  </div>
+                )}
               </form>
             </div>
-          </div>
+          </motion.div>
 
           {/* Order Summary */}
-          <div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 sticky top-24">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Order Summary</h2>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-5"
+          >
+            <div className="bg-white rounded-xl shadow-lg p-5 lg:sticky lg:top-24 border border-gray-100">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="p-1.5 bg-gold-50 rounded-lg">
+                  <ShoppingBag className="h-4 w-4 text-gold-600" />
+                </div>
+                <h2 className="text-xl font-serif font-semibold text-gray-900">Order Summary</h2>
+              </div>
               
-              <div className="space-y-4 mb-6">
+              {/* Products List */}
+              <div className="space-y-2.5 mb-5 max-h-64 overflow-y-auto scrollbar-thin">
                 {loading ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-500 mx-auto"></div>
+                  <div className="text-center py-6">
+                    <div className="relative inline-block">
+                      <div className="absolute inset-0 bg-gold-200/30 rounded-full blur-xl animate-pulse"></div>
+                      <div className="animate-spin rounded-full h-10 w-10 border-4 border-gold-200 border-t-gold-500 relative"></div>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">Loading products...</p>
                   </div>
                 ) : (
-                  productsWithDiscounts.map((item) => {
+                  productsWithDiscounts.map((item, index) => {
                     const itemDiscountInfo = item.discountInfo;
                     const hasDiscount = itemDiscountInfo?.hasDiscount;
                     const pricePerUnit = hasDiscount ? itemDiscountInfo.finalPrice : item.price;
@@ -500,72 +592,82 @@ Thank you for choosing Elegance Jewelry! 💍
                     const itemTotal = pricePerUnit * item.quantity;
 
                     return (
-                      <div key={item._id} className="flex items-start">
-                        <div className="relative">
+                      <motion.div 
+                        key={item._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex gap-2.5 p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="relative flex-shrink-0">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg mr-4"
+                            className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
                           />
                           {hasDiscount && itemDiscountInfo.discountLabel && (
-                            <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                            <span className="absolute top-0 right-0 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-bl-lg rounded-tr-lg font-bold shadow-md">
                               {itemDiscountInfo.discountLabel}
                             </span>
                           )}
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{item.name}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-0.5">{item.name}</h4>
+                          <p className="text-xs text-gray-500 mb-1.5">Quantity: {item.quantity}</p>
                           {hasDiscount && (
-                            <p className="text-xs text-green-600 dark:text-green-400">
+                            <p className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                              <Gift className="h-3 w-3" />
                               Save ₹{(itemDiscountInfo.discountAmount * item.quantity).toLocaleString()}
                             </p>
                           )}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col justify-center">
                           {hasDiscount ? (
                             <>
-                              <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base block">
+                              <span className="font-bold text-gold-600 text-sm">
                                 ₹{itemTotal.toLocaleString()}
                               </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400 line-through">
+                              <span className="text-xs text-gray-400 line-through">
                                 ₹{(originalPricePerUnit * item.quantity).toLocaleString()}
                               </span>
                             </>
                           ) : (
-                            <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                            <span className="font-bold text-gray-900 text-sm">
                               ₹{itemTotal.toLocaleString()}
                             </span>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })
                 )}
               </div>
 
               {/* Coupon Section */}
-              <div className="border-t dark:border-gray-700 pt-4 mb-4">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Have a Coupon?</h3>
+              <div className="border-t-2 border-gray-100 pt-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Tag className="h-4 w-4 text-gold-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Have a Coupon?</h3>
+                </div>
                 
                 {!appliedCoupon ? (
                   <>
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex gap-2 mb-2.5">
                       <input
                         type="text"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase font-mono"
+                        placeholder="ENTER CODE"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 uppercase font-mono text-sm placeholder-gray-400"
                         disabled={validatingCoupon}
                       />
                       <button
                         type="button"
                         onClick={() => handleApplyCoupon()}
                         disabled={validatingCoupon || !couponCode.trim()}
-                        className="px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded-lg hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold shadow-md text-sm"
                       >
-                        {validatingCoupon ? 'Applying...' : 'Apply'}
+                        {validatingCoupon ? 'Checking...' : 'Apply'}
                       </button>
                     </div>
                     
@@ -575,149 +677,189 @@ Thank you for choosing Elegance Jewelry! 💍
                         <button
                           type="button"
                           onClick={() => setShowCouponDropdown(!showCouponDropdown)}
-                          className="text-sm text-gold-600 dark:text-gold-400 hover:underline flex items-center"
+                          className="text-xs text-gold-600 hover:text-gold-700 font-medium flex items-center gap-1 hover:underline"
                         >
-                          <Tag className="h-4 w-4 mr-1" />
-                          {showCouponDropdown ? 'Hide' : 'View'} available coupons ({availableCoupons.length})
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {showCouponDropdown ? 'Hide' : 'View'} {availableCoupons.length} available {availableCoupons.length === 1 ? 'coupon' : 'coupons'}
                         </button>
                         
-                        {showCouponDropdown && (
-                          <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
-                            {availableCoupons.map((coupon: any) => (
-                              <div
-                                key={coupon._id}
-                                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors"
-                                onClick={() => handleSelectCoupon(coupon.code)}
-                              >
-                                <div className="flex-1">
-                                  <p className="font-mono font-bold text-sm text-gray-900 dark:text-white">
-                                    {coupon.code}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                                    {coupon.discountType === 'percentage' 
-                                      ? `${coupon.discountValue}% off` 
-                                      : `₹${coupon.discountValue} off`}
-                                    {coupon.minPurchase > 0 && ` on orders above ₹${coupon.minPurchase.toLocaleString()}`}
-                                  </p>
-                                  {coupon.description && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                      {coupon.description}
-                                    </p>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  className="ml-3 px-3 py-1 bg-gold-500 text-white text-xs rounded hover:bg-gold-600 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSelectCoupon(coupon.code);
-                                  }}
+                        <AnimatePresence>
+                          {showCouponDropdown && (
+                            <motion.div 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="mt-2.5 space-y-2 max-h-48 overflow-y-auto scrollbar-thin"
+                            >
+                              {availableCoupons.map((coupon: any, idx: number) => (
+                                <motion.div
+                                  key={coupon._id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 }}
+                                  className="group relative bg-gradient-to-r from-gold-50 to-amber-50 border-2 border-gold-200 rounded-lg p-2.5 hover:border-gold-400 cursor-pointer transition-all hover:shadow-md"
+                                  onClick={() => handleSelectCoupon(coupon.code)}
                                 >
-                                  Use
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-1.5 mb-0.5">
+                                        <Tag className="h-3 w-3 text-gold-600" />
+                                        <p className="font-mono font-bold text-xs text-gray-900">
+                                          {coupon.code}
+                                        </p>
+                                      </div>
+                                      <p className="text-xs text-gray-700 font-semibold">
+                                        {coupon.discountType === 'percentage' 
+                                          ? `${coupon.discountValue}% OFF` 
+                                          : `₹${coupon.discountValue} OFF`}
+                                        {coupon.minPurchase > 0 && ` · Min ₹${coupon.minPurchase.toLocaleString()}`}
+                                      </p>
+                                      {coupon.description && (
+                                        <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">
+                                          {coupon.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className="px-2.5 py-1 bg-gradient-to-r from-gold-500 to-gold-600 text-white text-xs font-semibold rounded-lg hover:from-gold-600 hover:to-gold-700 transition-all shadow-sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectCoupon(coupon.code);
+                                      }}
+                                    >
+                                      Apply
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                    <div className="flex items-center text-green-700 dark:text-green-300">
-                      <CheckCircle className="h-5 w-5 mr-2" />
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 p-3 rounded-lg"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-green-100 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
                       <div>
-                        <p className="font-mono font-bold">{appliedCoupon.code}</p>
-                        <p className="text-xs">
+                        <p className="font-mono font-bold text-sm text-green-900">{appliedCoupon.code}</p>
+                        <p className="text-xs text-green-700">
                           {appliedCoupon.discountType === 'percentage' 
-                            ? `${appliedCoupon.discountValue}% off` 
-                            : `₹${appliedCoupon.discountValue} off`}
+                            ? `${appliedCoupon.discountValue}% discount applied` 
+                            : `₹${appliedCoupon.discountValue} off applied`}
                         </p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={handleRemoveCoupon}
-                      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all"
+                      title="Remove coupon"
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-4 w-4" />
                     </button>
-                  </div>
+                  </motion.div>
                 )}
                 
                 {couponError && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">{couponError}</p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1.5 text-xs text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg"
+                  >
+                    {couponError}
+                  </motion.p>
                 )}
               </div>
 
-              <div className="border-t dark:border-gray-700 pt-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                  <span className="font-medium text-gray-900 dark:text-white">₹{state.total.toLocaleString()}</span>
+              {/* Price Breakdown */}
+              <div className="border-t-2 border-gray-100 pt-4 space-y-2.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-semibold text-gray-900">₹{state.total.toLocaleString()}</span>
                 </div>
+                
                 {productDiscountTotal > 0 && (
                   <>
-                    <div className="flex justify-between text-green-600 dark:text-green-400">
-                      <span className="flex items-center">
-                        <Tag className="h-4 w-4 mr-1" />
+                    <div className="flex justify-between text-sm bg-green-50 -mx-5 px-5 py-1.5">
+                      <span className="flex items-center gap-1 text-green-700 font-medium">
+                        <Gift className="h-3.5 w-3.5" />
                         Product Discounts
                       </span>
-                      <span className="font-medium">-₹{productDiscountTotal.toLocaleString()}</span>
+                      <span className="font-bold text-green-700">-₹{productDiscountTotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">After Product Discounts</span>
-                      <span className="font-medium text-gray-900 dark:text-white">₹{subtotalAfterProductDiscounts.toLocaleString()}</span>
+                      <span className="text-gray-600">After Discounts</span>
+                      <span className="font-semibold text-gray-900">₹{subtotalAfterProductDiscounts.toLocaleString()}</span>
                     </div>
                   </>
                 )}
+                
                 {appliedCoupon && (
-                  <div className="flex justify-between text-purple-600 dark:text-purple-400">
-                    <span className="flex items-center">
-                      <Tag className="h-4 w-4 mr-1" />
-                      Coupon Discount ({appliedCoupon.code})
+                  <div className="flex justify-between text-sm bg-purple-50 -mx-5 px-5 py-1.5">
+                    <span className="flex items-center gap-1 text-purple-700 font-medium">
+                      <Tag className="h-3.5 w-3.5" />
+                      Coupon ({appliedCoupon.code})
                     </span>
-                    <span className="font-medium">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+                    <span className="font-bold text-purple-700">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Shipping</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">Free</span>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="font-semibold text-green-600 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    Free
+                  </span>
                 </div>
-                <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t dark:border-gray-700">
-                  <span>Total</span>
-                  <span className="text-gold-600">₹{calculateFinalTotal().toLocaleString()}</span>
+                
+                <div className="flex justify-between items-baseline pt-2.5 border-t-2 border-gray-200">
+                  <span className="text-base font-semibold text-gray-900">Total Amount</span>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-gold-600">
+                      ₹{calculateFinalTotal().toLocaleString()}
+                    </span>
+                    {(productDiscountTotal > 0 || appliedCoupon) && (
+                      <p className="text-xs text-green-600 font-semibold mt-0.5">
+                        🎉 You save ₹{(productDiscountTotal + (appliedCoupon?.discountAmount || 0)).toLocaleString()}!
+                      </p>
+                    )}
+                  </div>
                 </div>
-                {(productDiscountTotal > 0 || appliedCoupon) && (
-                  <p className="text-xs text-green-600 dark:text-green-400 text-right">
-                    Total Savings: ₹{(productDiscountTotal + (appliedCoupon?.discountAmount || 0)).toLocaleString()}!
-                  </p>
-                )}
               </div>
 
-              <div className={`mt-6 p-4 rounded-lg ${
+              {/* WhatsApp Info Box */}
+              <div className={`mt-5 p-4 rounded-lg border-2 ${
                 isOnline
-                  ? 'bg-green-50 dark:bg-green-900/20'
-                  : 'bg-red-50 dark:bg-red-900/20'
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+                  : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200'
               }`}>
-                <p className={`text-sm mb-2 ${
-                  isOnline
-                    ? 'text-green-800 dark:text-green-200'
-                    : 'text-red-800 dark:text-red-200'
-                }`}>
-                  <strong>{isOnline ? 'WhatsApp Checkout:' : 'Store Offline:'}</strong>
-                </p>
-                <p className={`text-sm ${
-                  isOnline
-                    ? 'text-green-700 dark:text-green-300'
-                    : 'text-red-700 dark:text-red-300'
-                }`}>
-                  {isOnline
-                    ? 'Your order details will be sent directly to our WhatsApp for quick processing. We\'ll confirm availability and provide payment options.'
-                    : 'The store is currently offline. Orders are temporarily paused. Please check back later.'}
-                </p>
+                <div className="flex items-start gap-2.5">
+                  <div className={`p-1.5 rounded-lg ${isOnline ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <MessageCircle className={`h-4 w-4 ${isOnline ? 'text-green-600' : 'text-red-600'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-bold mb-0.5 ${isOnline ? 'text-green-900' : 'text-red-900'}`}>
+                      {isOnline ? '✅ WhatsApp Checkout Ready' : '⚠️ Store Currently Offline'}
+                    </p>
+                    <p className={`text-xs leading-relaxed ${isOnline ? 'text-green-700' : 'text-red-700'}`}>
+                      {isOnline
+                        ? 'Your order will be sent via WhatsApp for quick processing. We\'ll confirm availability and share payment details.'
+                        : 'Orders are temporarily paused. Please check back later or contact us for assistance.'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
