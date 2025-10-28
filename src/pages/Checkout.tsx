@@ -20,6 +20,25 @@ interface AppliedCoupon {
   discountValue: number;
 }
 
+interface DiscountInfo {
+  hasDiscount: boolean;
+  originalPrice: number;
+  discountAmount: number;
+  finalPrice: number;
+  discountPercentage: number;
+  discountLabel: string | null;
+}
+
+interface ProductWithDiscount {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  quantity: number;
+  discountInfo?: DiscountInfo;
+}
+
 const Checkout: React.FC = () => {
   const { state, dispatch } = useCart();
   const navigate = useNavigate();
@@ -38,8 +57,68 @@ const Checkout: React.FC = () => {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [showCouponDropdown, setShowCouponDropdown] = useState(false);
+  
+  // Product discount states
+  const [productsWithDiscounts, setProductsWithDiscounts] = useState<ProductWithDiscount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [productDiscountTotal, setProductDiscountTotal] = useState(0);
+  const [subtotalAfterProductDiscounts, setSubtotalAfterProductDiscounts] = useState(0);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+
+  // Fetch product discount information
+  useEffect(() => {
+    const fetchDiscountedProducts = async () => {
+      if (state.items.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch each product with discount information
+        const productsPromises = state.items.map(async (item) => {
+          try {
+            const res = await fetch(`${backendUrl}/api/products/${item._id}`);
+            if (res.ok) {
+              const productData = await res.json();
+              return {
+                ...item,
+                discountInfo: productData.discountInfo
+              } as ProductWithDiscount;
+            }
+          } catch (error) {
+            console.error(`Error fetching product ${item._id}:`, error);
+          }
+          return item as ProductWithDiscount;
+        });
+
+        const products = await Promise.all(productsPromises);
+        setProductsWithDiscounts(products);
+
+        // Calculate totals with product discounts
+        let totalProductDiscount = 0;
+        let subtotal = 0;
+
+        products.forEach((product: ProductWithDiscount) => {
+          if (product.discountInfo?.hasDiscount) {
+            totalProductDiscount += product.discountInfo.discountAmount * product.quantity;
+            subtotal += product.discountInfo.finalPrice * product.quantity;
+          } else {
+            subtotal += product.price * product.quantity;
+          }
+        });
+
+        setProductDiscountTotal(totalProductDiscount);
+        setSubtotalAfterProductDiscounts(subtotal);
+      } catch (error) {
+        console.error('Error fetching discounted products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDiscountedProducts();
+  }, [state.items, backendUrl]);
 
   // Fetch available coupons based on cart
   useEffect(() => {
@@ -94,14 +173,21 @@ const Checkout: React.FC = () => {
       // Get unique categories from cart items
       const cartCategories = [...new Set(state.items.map(item => item.category))];
       
-      // Map cart items to send to backend
-      const cartItems = state.items.map(item => ({
-        id: item._id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        category: item.category,
-      }));
+      // Map cart items to send to backend with discounted prices
+      const cartItems = productsWithDiscounts.map(item => {
+        const finalPrice = item.discountInfo?.hasDiscount 
+          ? item.discountInfo.finalPrice 
+          : item.price;
+        
+        return {
+          id: item._id,
+          name: item.name,
+          price: finalPrice, // Use discounted price if available
+          originalPrice: item.price, // Include original price for reference
+          quantity: item.quantity,
+          category: item.category,
+        };
+      });
 
       const res = await fetch(`${backendUrl}/api/coupons/validate`, {
         method: 'POST',
@@ -110,7 +196,7 @@ const Checkout: React.FC = () => {
         },
         body: JSON.stringify({
           code: code.toUpperCase().trim(),
-          cartTotal: state.total,
+          cartTotal: subtotalAfterProductDiscounts, // Use discounted subtotal
           cartCategories,
           cartItems,
         }),
@@ -153,10 +239,11 @@ const Checkout: React.FC = () => {
   };
 
   const calculateFinalTotal = () => {
+    let total = subtotalAfterProductDiscounts; // Start with product-discounted price
     if (appliedCoupon) {
-      return state.total - appliedCoupon.discountAmount;
+      total -= appliedCoupon.discountAmount; // Then apply coupon discount
     }
-    return state.total;
+    return total;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -186,13 +273,25 @@ const Checkout: React.FC = () => {
     }
 
     // Create WhatsApp message
-    const orderDetails = state.items.map(item => 
-      `${item.name} (Qty: ${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString()}`
-    ).join('\n');
+    const orderDetails = productsWithDiscounts.map(item => {
+      const itemDiscountInfo = item.discountInfo;
+      const hasDiscount = itemDiscountInfo?.hasDiscount;
+      const pricePerUnit = hasDiscount ? itemDiscountInfo.finalPrice : item.price;
+      const itemTotal = pricePerUnit * item.quantity;
+      
+      if (hasDiscount) {
+        return `${item.name} (Qty: ${item.quantity}) - ₹${itemTotal.toLocaleString()} (${itemDiscountInfo.discountLabel} applied)`;
+      } else {
+        return `${item.name} (Qty: ${item.quantity}) - ₹${itemTotal.toLocaleString()}`;
+      }
+    }).join('\n');
     
     const finalTotal = calculateFinalTotal();
+    const productDiscountInfo = productDiscountTotal > 0
+      ? `\n🎁 *Product Discounts:* -₹${productDiscountTotal.toLocaleString()}\n`
+      : '';
     const couponInfo = appliedCoupon 
-      ? `\n💎 *Coupon Applied:* ${appliedCoupon.code}\n💰 *Discount:* -₹${appliedCoupon.discountAmount.toLocaleString()}\n`
+      ? `💎 *Coupon Applied:* ${appliedCoupon.code}\n💰 *Coupon Discount:* -₹${appliedCoupon.discountAmount.toLocaleString()}\n`
       : '';
     
     const message = `
@@ -201,7 +300,7 @@ const Checkout: React.FC = () => {
 📦 *Order Details:*
 ${orderDetails}
 
-💵 *Subtotal:* ₹${state.total.toLocaleString()}${couponInfo}
+💵 *Subtotal:* ₹${state.total.toLocaleString()}${productDiscountInfo}${couponInfo}
 ✨ *Final Total: ₹${finalTotal.toLocaleString()}*
 
 👤 *Customer Information:*
@@ -388,22 +487,61 @@ Thank you for choosing Elegance Jewelry! 💍
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Order Summary</h2>
               
               <div className="space-y-4 mb-6">
-                {state.items.map((item) => (
-                  <div key={item._id} className="flex items-center">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg mr-4"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{item.name}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
-                    </div>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
-                      ₹{(item.price * item.quantity).toLocaleString()}
-                    </span>
+                {loading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-500 mx-auto"></div>
                   </div>
-                ))}
+                ) : (
+                  productsWithDiscounts.map((item) => {
+                    const itemDiscountInfo = item.discountInfo;
+                    const hasDiscount = itemDiscountInfo?.hasDiscount;
+                    const pricePerUnit = hasDiscount ? itemDiscountInfo.finalPrice : item.price;
+                    const originalPricePerUnit = hasDiscount ? itemDiscountInfo.originalPrice : item.price;
+                    const itemTotal = pricePerUnit * item.quantity;
+
+                    return (
+                      <div key={item._id} className="flex items-start">
+                        <div className="relative">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg mr-4"
+                          />
+                          {hasDiscount && itemDiscountInfo.discountLabel && (
+                            <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                              {itemDiscountInfo.discountLabel}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{item.name}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
+                          {hasDiscount && (
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              Save ₹{(itemDiscountInfo.discountAmount * item.quantity).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          {hasDiscount ? (
+                            <>
+                              <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base block">
+                                ₹{itemTotal.toLocaleString()}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 line-through">
+                                ₹{(originalPricePerUnit * item.quantity).toLocaleString()}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
+                              ₹{itemTotal.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               {/* Coupon Section */}
@@ -517,11 +655,26 @@ Thank you for choosing Elegance Jewelry! 💍
                   <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
                   <span className="font-medium text-gray-900 dark:text-white">₹{state.total.toLocaleString()}</span>
                 </div>
+                {productDiscountTotal > 0 && (
+                  <>
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span className="flex items-center">
+                        <Tag className="h-4 w-4 mr-1" />
+                        Product Discounts
+                      </span>
+                      <span className="font-medium">-₹{productDiscountTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">After Product Discounts</span>
+                      <span className="font-medium text-gray-900 dark:text-white">₹{subtotalAfterProductDiscounts.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
                 {appliedCoupon && (
-                  <div className="flex justify-between text-green-600 dark:text-green-400">
+                  <div className="flex justify-between text-purple-600 dark:text-purple-400">
                     <span className="flex items-center">
                       <Tag className="h-4 w-4 mr-1" />
-                      Coupon Discount
+                      Coupon Discount ({appliedCoupon.code})
                     </span>
                     <span className="font-medium">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
                   </div>
@@ -534,9 +687,9 @@ Thank you for choosing Elegance Jewelry! 💍
                   <span>Total</span>
                   <span className="text-gold-600">₹{calculateFinalTotal().toLocaleString()}</span>
                 </div>
-                {appliedCoupon && (
+                {(productDiscountTotal > 0 || appliedCoupon) && (
                   <p className="text-xs text-green-600 dark:text-green-400 text-right">
-                    You saved ₹{appliedCoupon.discountAmount.toLocaleString()}!
+                    Total Savings: ₹{(productDiscountTotal + (appliedCoupon?.discountAmount || 0)).toLocaleString()}!
                   </p>
                 )}
               </div>

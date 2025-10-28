@@ -15,6 +15,15 @@ interface Product {
   tags: string[];
   description: string;
   inStock: boolean;
+  discountInfo?: {
+    hasDiscount: boolean;
+    discount: any;
+    originalPrice: number;
+    discountAmount: number;
+    finalPrice: number;
+    discountPercentage: number;
+    discountLabel: string | null;
+  };
   details?: {
     material: string;
     weight: string;
@@ -197,8 +206,39 @@ const ProductDetail: React.FC = () => {
               <span className="ml-2 text-gray-600">(4.8) • 24 reviews</span>
             </div>
 
-            <div className="text-4xl font-bold text-gold-600 mb-6">
-              ₹{product.price.toLocaleString()}
+            {/* Price with Discount Information */}
+            <div className="mb-6">
+              {product.discountInfo?.hasDiscount ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="text-4xl font-bold text-gold-600">
+                      ₹{product.discountInfo.finalPrice.toLocaleString()}
+                    </div>
+                    {product.discountInfo.discountLabel && (
+                      <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        {product.discountInfo.discountLabel}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl text-gray-500 line-through">
+                      ₹{product.discountInfo.originalPrice.toLocaleString()}
+                    </span>
+                    <span className="text-lg text-green-600 font-semibold">
+                      Save ₹{product.discountInfo.discountAmount.toLocaleString()} ({product.discountInfo.discountPercentage}% off)
+                    </span>
+                  </div>
+                  {product.discountInfo.discount?.name && (
+                    <p className="text-sm text-gray-600 italic">
+                      Discount: {product.discountInfo.discount.name}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-4xl font-bold text-gold-600">
+                  ₹{product.price.toLocaleString()}
+                </div>
+              )}
             </div>
 
             {/* Available Coupons */}

@@ -4,6 +4,7 @@ import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power } from 'lucid
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import CouponManagement from '../components/CouponManagement';
+import DiscountManagement from '../components/DiscountManagement';
 
 interface Product {
   _id: string;
@@ -35,6 +36,7 @@ const AdminDashboard: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [filterDiscount, setFilterDiscount] = useState<'all' | 'discounted' | 'no-discount'>('all');
   const [sortByDate, setSortByDate] = useState<'newest' | 'oldest'>('newest');
   const [formData, setFormData] = useState({
     name: '',
@@ -44,11 +46,14 @@ const AdminDashboard: React.FC = () => {
     tags: '',
     description: '',
     inStock: true,
+    discountType: 'none',
+    discountValue: '0',
   });
   const [pendingAdmins, setPendingAdmins] = useState<Admin[]>([]);
   const [allAdmins, setAllAdmins] = useState<Admin[]>([]);
   const [showAdminManagement, setShowAdminManagement] = useState(false);
   const [showCouponManagement, setShowCouponManagement] = useState(false);
+  const [showDiscountManagement, setShowDiscountManagement] = useState(false);
   const [isMainAdmin, setIsMainAdmin] = useState(false);
   const { isOnline, setStoreStatus } = useStore();
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -153,6 +158,8 @@ const AdminDashboard: React.FC = () => {
       tags: formData.tags.split(',').map(tag => tag.trim()),
       description: formData.description,
       inStock: formData.inStock,
+      discountType: formData.discountType,
+      discountValue: parseFloat(formData.discountValue) || 0,
     };
 
     if (editingProduct) {
@@ -212,6 +219,8 @@ const AdminDashboard: React.FC = () => {
       tags: '',
       description: '',
       inStock: true,
+      discountType: 'none',
+      discountValue: '0',
     });
     setShowForm(false);
     setEditingProduct(null);
@@ -227,6 +236,8 @@ const AdminDashboard: React.FC = () => {
       tags: product.tags.join(', '),
       description: product.description,
       inStock: product.inStock,
+      discountType: (product as any).discountType || 'none',
+      discountValue: ((product as any).discountValue || 0).toString(),
     });
     setShowForm(true);
   };
@@ -285,6 +296,19 @@ const AdminDashboard: React.FC = () => {
       filtered = filtered.filter((p) => p.category === filterCategory);
     }
 
+    // Filter by discount status
+    if (filterDiscount === 'discounted') {
+      filtered = filtered.filter((p) => {
+        const productData = p as any;
+        return productData.discountType && productData.discountType !== 'none' && productData.discountValue > 0;
+      });
+    } else if (filterDiscount === 'no-discount') {
+      filtered = filtered.filter((p) => {
+        const productData = p as any;
+        return !productData.discountType || productData.discountType === 'none' || productData.discountValue === 0;
+      });
+    }
+
     filtered.sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
@@ -292,7 +316,7 @@ const AdminDashboard: React.FC = () => {
     });
 
     setFilteredProducts(filtered);
-  }, [products, searchQuery, filterCategory, sortByDate]);
+  }, [products, searchQuery, filterCategory, filterDiscount, sortByDate]);
 
   const allCategories = [...new Set(products.map((p) => p.category))];
 
@@ -414,6 +438,14 @@ const AdminDashboard: React.FC = () => {
               className="bg-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center"
             >
               {showCouponManagement ? 'Hide Coupon Management' : 'Manage Coupons'}
+            </button>
+
+            {/* Manage Discounts Button */}
+            <button
+              onClick={() => setShowDiscountManagement(!showDiscountManagement)}
+              className="bg-indigo-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center justify-center"
+            >
+              {showDiscountManagement ? 'Hide Discount Management' : 'Manage Discounts'}
             </button>
           </div>
         </div>
@@ -545,6 +577,47 @@ const AdminDashboard: React.FC = () => {
                     <label className="text-sm font-medium text-gray-700">
                       In Stock
                     </label>
+                  </div>
+
+                  {/* Product-Specific Discount Fields */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-md font-semibold text-gray-700 mb-3">Product-Specific Discount (Optional)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Discount Type
+                        </label>
+                        <select
+                          name="discountType"
+                          value={formData.discountType}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                        >
+                          <option value="none">No Discount</option>
+                          <option value="percentage">Percentage (%)</option>
+                          <option value="flat">Flat Amount (₹)</option>
+                        </select>
+                      </div>
+
+                      {formData.discountType !== 'none' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Discount Value
+                          </label>
+                          <input
+                            type="number"
+                            name="discountValue"
+                            step="0.01"
+                            min="0"
+                            max={formData.discountType === 'percentage' ? '100' : undefined}
+                            value={formData.discountValue}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                            placeholder={formData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 500'}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-end space-x-4">
@@ -741,6 +814,13 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Discount Management Section */}
+        {showDiscountManagement && (
+          <div className="mb-8">
+            <DiscountManagement />
+          </div>
+        )}
+
       {/* Products Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
@@ -767,6 +847,16 @@ const AdminDashboard: React.FC = () => {
                       {cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </option>
                   ))}
+                </select>
+
+                <select
+                  value={filterDiscount}
+                  onChange={(e) => setFilterDiscount(e.target.value as 'all' | 'discounted' | 'no-discount')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
+                >
+                  <option value="all">All Products</option>
+                  <option value="discounted">Discounted</option>
+                  <option value="no-discount">No Discount</option>
                 </select>
 
                 <select
@@ -817,8 +907,21 @@ const AdminDashboard: React.FC = () => {
                           alt={product.name}
                         />
                         <div className="ml-3 sm:ml-4 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
-                            {product.name}
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </div>
+                            {(() => {
+                              const productData = product as any;
+                              if (productData.discountType && productData.discountType !== 'none' && productData.discountValue > 0) {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-gradient-to-r from-orange-500 to-pink-500 text-white flex-shrink-0">
+                                    {productData.discountType === 'percentage' ? `${productData.discountValue}% OFF` : `₹${productData.discountValue} OFF`}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                           <div className="text-sm text-gray-500 truncate">
                             {product.tags.slice(0, 2).join(', ')}

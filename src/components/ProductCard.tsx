@@ -4,6 +4,16 @@ import { Heart, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 
+interface DiscountInfo {
+  hasDiscount: boolean;
+  discount: any;
+  originalPrice: number;
+  discountAmount: number;
+  finalPrice: number;
+  discountPercentage: number;
+  discountLabel: string | null;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -12,6 +22,7 @@ interface Product {
   category: string;
   tags: string[];
   inStock: boolean;
+  discountInfo?: DiscountInfo;
 }
 
 interface ProductCardProps {
@@ -49,6 +60,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             alt={product.name}
             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          
+          {/* Discount Badge */}
+          {product.discountInfo?.hasDiscount && product.discountInfo.discountLabel && (
+            <div className="absolute top-2 left-2 z-10">
+              <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                {product.discountInfo.discountLabel}
+              </span>
+            </div>
+          )}
+          
           {!product.inStock && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -89,9 +110,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <p className="text-sm text-gray-600 mb-2 capitalize">{product.category}</p>
           
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-gold-600">
-              ₹{product.price.toLocaleString()}
-            </span>
+            <div className="flex flex-col">
+              {product.discountInfo?.hasDiscount ? (
+                <>
+                  <span className="text-2xl font-bold text-gold-600">
+                    ₹{product.discountInfo.finalPrice.toLocaleString()}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 line-through">
+                      ₹{product.discountInfo.originalPrice.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-green-600 font-semibold">
+                      Save ₹{product.discountInfo.discountAmount.toLocaleString()}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <span className="text-2xl font-bold text-gold-600">
+                  ₹{product.price.toLocaleString()}
+                </span>
+              )}
+            </div>
             
             <button
               onClick={handleAddToCart}

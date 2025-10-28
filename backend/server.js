@@ -11,6 +11,8 @@ import fs from 'fs';
 import natural from 'natural';
 import { cosineSimilarity, getProductText, calculateWeightedSimilarity } from './utils/similarity.js';
 import couponRoutes from './routes/couponRoutes.js';
+import discountRoutes from './routes/discountRoutes.js';
+import { calculateProductDiscount, calculateProductsDiscounts, calculateCartDiscount } from './utils/discountCalculator.js';
 
 dotenv.config();
 
@@ -66,6 +68,17 @@ const productSchema = new mongoose.Schema({
   description: { type: String, required: true },
   inStock: { type: Boolean, default: true },
   views: { type: Number, default: 0 },
+  // Product-specific discount fields
+  discountType: { 
+    type: String, 
+    enum: ['none', 'percentage', 'flat'], 
+    default: 'none' 
+  },
+  discountValue: { 
+    type: Number, 
+    default: 0,
+    min: 0
+  },
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
@@ -164,6 +177,9 @@ const authenticateMainAdmin = (req, res, next) => {
 // Mount Coupon Routes (authentication handled within routes)
 app.use('/api/coupons', couponRoutes);
 
+// Mount Discount Routes (authentication handled within routes)
+app.use('/api/discounts', authenticateToken, discountRoutes);
+
 // Admin Authentication
 app.post('/api/admin/register', async (req, res) => {
   try {
@@ -239,7 +255,7 @@ app.post('/api/admin/login', async (req, res) => {
 
 // Product Routes
 
-// Get all products
+// Get all products (with discount information)
 app.get('/api/products', async (req, res) => {
   try {
     const { category, tags, minPrice, maxPrice, search } = req.query;
@@ -269,20 +285,39 @@ app.get('/api/products', async (req, res) => {
     }
 
     const products = await Product.find(filter).sort({ createdAt: -1 });
-    res.json(products);
+    
+    // Calculate discounts for all products
+    const productsWithDiscounts = await Promise.all(
+      products.map(async (product) => {
+        const discountInfo = await calculateProductDiscount(product.toObject());
+        return {
+          ...product.toObject(),
+          discountInfo
+        };
+      })
+    );
+    
+    res.json(productsWithDiscounts);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// Get single product
+// Get single product (with discount information)
 app.get('/api/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    // Calculate discount for this product
+    const discountInfo = await calculateProductDiscount(product.toObject());
+    
+    res.json({
+      ...product.toObject(),
+      discountInfo
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -355,7 +390,7 @@ app.get('/api/products/:id/recommendations', async (req, res) => {
 // Create product (Admin only)
 app.post('/api/products', authenticateToken, async (req, res) => {
   try {
-    const { name, price, image, category, tags, description, inStock } = req.body;
+    const { name, price, image, category, tags, description, inStock, discountType, discountValue } = req.body;
     
     const product = new Product({
       name,
@@ -365,6 +400,8 @@ app.post('/api/products', authenticateToken, async (req, res) => {
       tags: Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim()),
       description,
       inStock,
+      discountType: discountType || 'none',
+      discountValue: discountValue || 0,
     });
 
     await product.save();
@@ -377,7 +414,7 @@ app.post('/api/products', authenticateToken, async (req, res) => {
 // Update product (Admin only)
 app.put('/api/products/:id', authenticateToken, async (req, res) => {
   try {
-    const { name, price, image, category, tags, description, inStock } = req.body;
+    const { name, price, image, category, tags, description, inStock, discountType, discountValue } = req.body;
     
     const product = await Product.findByIdAndUpdate(
       req.params.id,
@@ -389,6 +426,8 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
         tags: Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim()),
         description,
         inStock,
+        discountType: discountType || 'none',
+        discountValue: discountValue || 0,
       },
       { new: true }
     );
