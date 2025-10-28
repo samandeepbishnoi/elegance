@@ -117,20 +117,26 @@ const ProductDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gold-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-gold-200/30 dark:bg-gold-500/10 rounded-full blur-xl animate-pulse"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gold-200 dark:border-gray-700 border-t-gold-500 relative"></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 text-sm">Loading product...</p>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Product Not Found</h2>
           <button
             onClick={() => navigate('/')}
-            className="bg-gold-500 text-white px-6 py-2 rounded-lg hover:bg-gold-600 transition-colors"
+            className="bg-gold-500 text-white px-6 py-2 rounded-lg hover:bg-gold-600 dark:bg-gold-600 dark:hover:bg-gold-700 transition-colors"
           >
             Back to Home
           </button>
@@ -157,21 +163,21 @@ const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={() => navigate('/catalog')}
-          className="flex items-center text-gray-600 hover:text-gold-600 transition-colors mb-8"
+          className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gold-600 dark:hover:text-gold-400 transition-colors mb-6"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Collection
         </button>
 
-        <div className="lg:grid lg:grid-cols-2 lg:gap-12">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8">
           {/* Product Images */}
-          <div className="mb-8 lg:mb-0">
-            <div className="aspect-square rounded-lg overflow-hidden bg-white mb-4 flex items-center justify-center">
+          <div className="mb-6 lg:mb-0">
+            <div className="aspect-square rounded-lg overflow-hidden bg-white dark:bg-gray-800 mb-3 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -181,61 +187,61 @@ const ProductDetail: React.FC = () => {
           </div>
 
           {/* Product Details */}
-          <div className="lg:pt-8">
-            <div className="flex flex-wrap gap-2 mb-4">
+          <div className="lg:pt-4">
+            <div className="flex flex-wrap gap-2 mb-3">
               {product.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="bg-gold-100 text-gold-700 px-3 py-1 rounded-full text-sm font-medium"
+                  className="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 px-2.5 py-1 rounded-full text-xs font-medium"
                 >
                   {tag}
                 </span>
               ))}
             </div>
 
-            <h1 className="text-3xl font-serif font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-3">
               {product.name}
             </h1>
 
-            <div className="flex items-center mb-4">
+            <div className="flex items-center mb-3">
               <div className="flex text-gold-400">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-current" />
+                  <Star key={i} className="h-4 w-4 fill-current" />
                 ))}
               </div>
-              <span className="ml-2 text-gray-600">(4.8) • 24 reviews</span>
+              <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">(4.8) • 24 reviews</span>
             </div>
 
             {/* Price with Discount Information */}
-            <div className="mb-6">
+            <div className="mb-5">
               {product.discountInfo?.hasDiscount ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="text-4xl font-bold text-gold-600">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="text-3xl font-bold text-gold-600 dark:text-gold-400">
                       ₹{product.discountInfo.finalPrice.toLocaleString()}
                     </div>
                     {product.discountInfo.discountLabel && (
-                      <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                      <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-2.5 py-1 rounded-full text-xs font-bold">
                         {product.discountInfo.discountLabel}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl text-gray-500 line-through">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-lg text-gray-500 dark:text-gray-400 line-through">
                       ₹{product.discountInfo.originalPrice.toLocaleString()}
                     </span>
-                    <span className="text-lg text-green-600 font-semibold">
+                    <span className="text-base text-green-600 dark:text-green-400 font-semibold">
                       Save ₹{product.discountInfo.discountAmount.toLocaleString()} ({product.discountInfo.discountPercentage}% off)
                     </span>
                   </div>
                   {product.discountInfo.discount?.name && (
-                    <p className="text-sm text-gray-600 italic">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 italic">
                       Discount: {product.discountInfo.discount.name}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="text-4xl font-bold text-gold-600">
+                <div className="text-3xl font-bold text-gold-600 dark:text-gold-400">
                   ₹{product.price.toLocaleString()}
                 </div>
               )}
@@ -243,17 +249,17 @@ const ProductDetail: React.FC = () => {
 
             {/* Available Coupons */}
             {categoryCoupons.length > 0 && (
-              <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <div className="mb-5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3.5">
                 <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center">
-                  <Tag className="h-4 w-4 mr-2" />
+                  <Tag className="h-3.5 w-3.5 mr-1.5" />
                   Available Offers
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {categoryCoupons.map((coupon, index) => (
                     <div key={index} className="flex items-start">
-                      <span className="text-green-700 dark:text-green-300 mr-2">•</span>
-                      <p className="text-sm text-green-700 dark:text-green-300">
-                        Use code <span className="font-mono font-bold bg-white dark:bg-gray-700 px-2 py-0.5 rounded">{coupon.code}</span> to get{' '}
+                      <span className="text-green-700 dark:text-green-300 mr-1.5">•</span>
+                      <p className="text-xs text-green-700 dark:text-green-300">
+                        Use code <span className="font-mono font-bold bg-white dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">{coupon.code}</span> to get{' '}
                         {coupon.discountType === 'percentage' 
                           ? `${coupon.discountValue}% off` 
                           : `₹${coupon.discountValue} off`}
@@ -265,61 +271,59 @@ const ProductDetail: React.FC = () => {
               </div>
             )}
 
-            <p className="text-gray-700 text-lg leading-relaxed mb-8">
+            <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed mb-6">
               {product.description}
             </p>
 
             {/* Product Details */}
             {product.details && (
-              <div className="bg-white rounded-lg p-6 mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Product Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Material:</span>
-                    <span className="font-medium">{product.details.material}</span>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Product Details</h3>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">Material:</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{product.details.material}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Weight:</span>
-                    <span className="font-medium">{product.details.weight}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">Weight:</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{product.details.weight}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dimensions:</span>
-                    <span className="font-medium">{product.details.dimensions}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">Dimensions:</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{product.details.dimensions}</span>
                   </div>
                   {product.details.certification && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Certification:</span>
-                      <span className="font-medium">{product.details.certification}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Certification:</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{product.details.certification}</span>
                     </div>
                   )}
                 </div>
               </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            )}            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <button
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
-                className={`flex-1 flex items-center justify-center px-8 py-4 rounded-lg font-medium transition-colors ${
+                className={`flex-1 flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-colors ${
                   product.inStock
-                    ? 'bg-gold-500 text-white hover:bg-gold-600'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gold-500 text-white hover:bg-gold-600 dark:bg-gold-600 dark:hover:bg-gold-700'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                 }`}
               >
-                <ShoppingBag className="h-5 w-5 mr-2" />
+                <ShoppingBag className="h-4 w-4 mr-2" />
                 {product.inStock ? 'Add to Cart' : 'Out of Stock'}
               </button>
               
               <button
                 onClick={handleToggleWishlist}
-                className={`px-8 py-4 rounded-lg font-medium border-2 transition-colors ${
+                className={`px-6 py-3 rounded-lg font-medium border-2 transition-colors ${
                   isInWishlist
-                    ? 'bg-red-500 text-white border-red-500 hover:bg-red-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gold-500 hover:text-gold-600'
+                    ? 'bg-red-500 text-white border-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gold-500 dark:hover:border-gold-400 hover:text-gold-600 dark:hover:text-gold-400'
                 }`}
               >
-                <Heart className="h-5 w-5 mx-auto" />
+                <Heart className="h-4 w-4 mx-auto" />
               </button>
             </div>
 
@@ -329,7 +333,7 @@ const ProductDetail: React.FC = () => {
                 product.inStock ? 'bg-green-500' : 'bg-red-500'
               }`}></div>
               <span className={`font-medium ${
-                product.inStock ? 'text-green-600' : 'text-red-600'
+                product.inStock ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               }`}>
                 {product.inStock ? 'In Stock' : 'Out of Stock'}
               </span>

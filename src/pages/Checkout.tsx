@@ -332,7 +332,7 @@ Thank you for choosing Elegance Jewelry! 💍
 
   if (state.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 py-20">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -344,15 +344,15 @@ Thank you for choosing Elegance Jewelry! 💍
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="relative inline-block mb-6"
           >
-            <div className="absolute inset-0 bg-gold-200/30 rounded-full blur-2xl"></div>
-            <ShoppingBag className="h-32 w-32 text-gold-300 mx-auto relative" strokeWidth={1.5} />
+            <div className="absolute inset-0 bg-gold-200/30 dark:bg-gold-500/10 rounded-full blur-2xl"></div>
+            <ShoppingBag className="h-32 w-32 text-gold-300 dark:text-gold-600 mx-auto relative" strokeWidth={1.5} />
           </motion.div>
           
           <motion.h2 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-4xl font-serif font-bold text-gray-900 mb-4"
+            className="text-4xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-4"
           >
             No Items to Checkout
           </motion.h2>
@@ -361,7 +361,7 @@ Thank you for choosing Elegance Jewelry! 💍
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 mb-8 text-lg"
+            className="text-gray-600 dark:text-gray-300 mb-8 text-lg"
           >
             Add some beautiful jewelry pieces to your cart first!
           </motion.p>
@@ -383,7 +383,7 @@ Thank you for choosing Elegance Jewelry! 💍
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 py-6 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <motion.div
@@ -393,19 +393,19 @@ Thank you for choosing Elegance Jewelry! 💍
         >
           <button
             onClick={() => navigate('/cart')}
-            className="group flex items-center text-gray-600 hover:text-gold-600 transition-colors mb-4"
+            className="group flex items-center text-gray-600 dark:text-gray-300 hover:text-gold-600 dark:hover:text-gold-400 transition-colors mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium text-sm">Back to Cart</span>
           </button>
 
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-gold-100 rounded-lg">
-              <CreditCard className="h-5 w-5 text-gold-600" />
+            <div className="p-1.5 bg-gold-100 dark:bg-gold-900/30 rounded-lg">
+              <CreditCard className="h-5 w-5 text-gold-600 dark:text-gold-400" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Secure Checkout</h1>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100">Secure Checkout</h1>
           </div>
-          <p className="text-sm text-gray-600 ml-10">Complete your order in just a few steps</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 ml-10">Complete your order in just a few steps</p>
         </motion.div>
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-6">
@@ -416,19 +416,19 @@ Thank you for choosing Elegance Jewelry! 💍
             transition={{ delay: 0.1 }}
             className="lg:col-span-7 mb-6 lg:mb-0"
           >
-            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-gray-100">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 sm:p-6 border border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-2 mb-5">
-                <div className="p-1.5 bg-gold-50 rounded-lg">
-                  <User className="h-4 w-4 text-gold-600" />
+                <div className="p-1.5 bg-gold-50 dark:bg-gold-900/30 rounded-lg">
+                  <User className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                 </div>
-                <h2 className="text-xl font-serif font-semibold text-gray-900">Customer Information</h2>
+                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-gray-100">Customer Information</h2>
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-3.5">
                 {/* Full Name */}
                 <div className="group">
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <User className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <User className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Full Name *
                   </label>
                   <input
@@ -438,15 +438,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Enter your full name"
                   />
                 </div>
 
                 {/* Phone Number */}
                 <div className="group">
-                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Phone Number *
                   </label>
                   <input
@@ -456,15 +456,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.phone}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Enter your phone number"
                   />
                 </div>
 
                 {/* Email Address */}
                 <div className="group">
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Email Address
                   </label>
                   <input
@@ -473,15 +473,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     name="email"
                     value={customerInfo.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Enter your email address"
                   />
                 </div>
 
                 {/* Address */}
                 <div className="group">
-                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Address *
                   </label>
                   <input
@@ -491,15 +491,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.address}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Enter your complete address"
                   />
                 </div>
 
                 {/* Pin Code */}
                 <div className="group">
-                  <label htmlFor="pincode" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="pincode" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Pin Code *
                   </label>
                   <input
@@ -509,15 +509,15 @@ Thank you for choosing Elegance Jewelry! 💍
                     required
                     value={customerInfo.pincode}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Enter your pin code"
                   />
                 </div>
 
                 {/* Special Notes */}
                 <div className="group">
-                  <label htmlFor="notes" className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gold-600" />
+                  <label htmlFor="notes" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                     Special Notes
                   </label>
                   <textarea
@@ -526,7 +526,7 @@ Thank you for choosing Elegance Jewelry! 💍
                     rows={3}
                     value={customerInfo.notes}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 placeholder-gray-400 resize-none"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none"
                     placeholder="Ring size, special instructions, etc."
                   />
                 </div>
@@ -549,7 +549,7 @@ Thank you for choosing Elegance Jewelry! 💍
 
                 {/* Security Badge */}
                 {isOnline && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Secure checkout powered by WhatsApp</span>
                   </div>
@@ -565,12 +565,12 @@ Thank you for choosing Elegance Jewelry! 💍
             transition={{ delay: 0.2 }}
             className="lg:col-span-5"
           >
-            <div className="bg-white rounded-xl shadow-lg p-5 lg:sticky lg:top-24 border border-gray-100">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 lg:sticky lg:top-24 border border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-2 mb-5">
-                <div className="p-1.5 bg-gold-50 rounded-lg">
-                  <ShoppingBag className="h-4 w-4 text-gold-600" />
+                <div className="p-1.5 bg-gold-50 dark:bg-gold-900/30 rounded-lg">
+                  <ShoppingBag className="h-4 w-4 text-gold-600 dark:text-gold-400" />
                 </div>
-                <h2 className="text-xl font-serif font-semibold text-gray-900">Order Summary</h2>
+                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-gray-100">Order Summary</h2>
               </div>
               
               {/* Products List */}
@@ -578,10 +578,10 @@ Thank you for choosing Elegance Jewelry! 💍
                 {loading ? (
                   <div className="text-center py-6">
                     <div className="relative inline-block">
-                      <div className="absolute inset-0 bg-gold-200/30 rounded-full blur-xl animate-pulse"></div>
-                      <div className="animate-spin rounded-full h-10 w-10 border-4 border-gold-200 border-t-gold-500 relative"></div>
+                      <div className="absolute inset-0 bg-gold-200/30 dark:bg-gold-500/10 rounded-full blur-xl animate-pulse"></div>
+                      <div className="animate-spin rounded-full h-10 w-10 border-4 border-gold-200 dark:border-gray-700 border-t-gold-500 relative"></div>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600">Loading products...</p>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Loading products...</p>
                   </div>
                 ) : (
                   productsWithDiscounts.map((item, index) => {
@@ -597,7 +597,7 @@ Thank you for choosing Elegance Jewelry! 💍
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="flex gap-2.5 p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex gap-2.5 p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       >
                         <div className="relative flex-shrink-0">
                           <img
@@ -612,10 +612,10 @@ Thank you for choosing Elegance Jewelry! 💍
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-0.5">{item.name}</h4>
-                          <p className="text-xs text-gray-500 mb-1.5">Quantity: {item.quantity}</p>
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm line-clamp-1 mb-0.5">{item.name}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">Quantity: {item.quantity}</p>
                           {hasDiscount && (
-                            <p className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                            <p className="text-xs text-green-600 dark:text-green-400 font-semibold flex items-center gap-1">
                               <Gift className="h-3 w-3" />
                               Save ₹{(itemDiscountInfo.discountAmount * item.quantity).toLocaleString()}
                             </p>
@@ -624,15 +624,15 @@ Thank you for choosing Elegance Jewelry! 💍
                         <div className="text-right flex flex-col justify-center">
                           {hasDiscount ? (
                             <>
-                              <span className="font-bold text-gold-600 text-sm">
+                              <span className="font-bold text-gold-600 dark:text-gold-400 text-sm">
                                 ₹{itemTotal.toLocaleString()}
                               </span>
-                              <span className="text-xs text-gray-400 line-through">
+                              <span className="text-xs text-gray-400 dark:text-gray-500 line-through">
                                 ₹{(originalPricePerUnit * item.quantity).toLocaleString()}
                               </span>
                             </>
                           ) : (
-                            <span className="font-bold text-gray-900 text-sm">
+                            <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">
                               ₹{itemTotal.toLocaleString()}
                             </span>
                           )}
@@ -644,10 +644,10 @@ Thank you for choosing Elegance Jewelry! 💍
               </div>
 
               {/* Coupon Section */}
-              <div className="border-t-2 border-gray-100 pt-4 mb-4">
+              <div className="border-t-2 border-gray-100 dark:border-gray-700 pt-4 mb-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Tag className="h-4 w-4 text-gold-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Have a Coupon?</h3>
+                  <Tag className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Have a Coupon?</h3>
                 </div>
                 
                 {!appliedCoupon ? (
@@ -658,7 +658,7 @@ Thank you for choosing Elegance Jewelry! 💍
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder="ENTER CODE"
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white text-gray-900 uppercase font-mono text-sm placeholder-gray-400"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase font-mono text-sm placeholder-gray-400 dark:placeholder-gray-500"
                         disabled={validatingCoupon}
                       />
                       <button
@@ -677,7 +677,7 @@ Thank you for choosing Elegance Jewelry! 💍
                         <button
                           type="button"
                           onClick={() => setShowCouponDropdown(!showCouponDropdown)}
-                          className="text-xs text-gold-600 hover:text-gold-700 font-medium flex items-center gap-1 hover:underline"
+                          className="text-xs text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 font-medium flex items-center gap-1 hover:underline"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                           {showCouponDropdown ? 'Hide' : 'View'} {availableCoupons.length} available {availableCoupons.length === 1 ? 'coupon' : 'coupons'}
@@ -697,25 +697,25 @@ Thank you for choosing Elegance Jewelry! 💍
                                   initial={{ opacity: 0, x: -10 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: idx * 0.05 }}
-                                  className="group relative bg-gradient-to-r from-gold-50 to-amber-50 border-2 border-gold-200 rounded-lg p-2.5 hover:border-gold-400 cursor-pointer transition-all hover:shadow-md"
+                                  className="group relative bg-gradient-to-r from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20 border-2 border-gold-200 dark:border-gold-700 rounded-lg p-2.5 hover:border-gold-400 dark:hover:border-gold-500 cursor-pointer transition-all hover:shadow-md"
                                   onClick={() => handleSelectCoupon(coupon.code)}
                                 >
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1">
                                       <div className="flex items-center gap-1.5 mb-0.5">
-                                        <Tag className="h-3 w-3 text-gold-600" />
-                                        <p className="font-mono font-bold text-xs text-gray-900">
+                                        <Tag className="h-3 w-3 text-gold-600 dark:text-gold-400" />
+                                        <p className="font-mono font-bold text-xs text-gray-900 dark:text-gray-100">
                                           {coupon.code}
                                         </p>
                                       </div>
-                                      <p className="text-xs text-gray-700 font-semibold">
+                                      <p className="text-xs text-gray-700 dark:text-gray-300 font-semibold">
                                         {coupon.discountType === 'percentage' 
                                           ? `${coupon.discountValue}% OFF` 
                                           : `₹${coupon.discountValue} OFF`}
                                         {coupon.minPurchase > 0 && ` · Min ₹${coupon.minPurchase.toLocaleString()}`}
                                       </p>
                                       {coupon.description && (
-                                        <p className="text-[10px] text-gray-600 mt-0.5 line-clamp-2">
+                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
                                           {coupon.description}
                                         </p>
                                       )}
@@ -743,15 +743,15 @@ Thank you for choosing Elegance Jewelry! 💍
                   <motion.div 
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 p-3 rounded-lg"
+                    className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 p-3 rounded-lg"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-green-100 rounded-lg">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                       </div>
                       <div>
-                        <p className="font-mono font-bold text-sm text-green-900">{appliedCoupon.code}</p>
-                        <p className="text-xs text-green-700">
+                        <p className="font-mono font-bold text-sm text-green-900 dark:text-green-100">{appliedCoupon.code}</p>
+                        <p className="text-xs text-green-700 dark:text-green-300">
                           {appliedCoupon.discountType === 'percentage' 
                             ? `${appliedCoupon.discountValue}% discount applied` 
                             : `₹${appliedCoupon.discountValue} off applied`}
@@ -761,7 +761,7 @@ Thank you for choosing Elegance Jewelry! 💍
                     <button
                       type="button"
                       onClick={handleRemoveCoupon}
-                      className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all"
+                      className="p-1.5 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                       title="Remove coupon"
                     >
                       <X className="h-4 w-4" />
@@ -773,7 +773,7 @@ Thank you for choosing Elegance Jewelry! 💍
                   <motion.p 
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-1.5 text-xs text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg"
+                    className="mt-1.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2.5 py-1.5 rounded-lg"
                   >
                     {couponError}
                   </motion.p>
@@ -781,54 +781,54 @@ Thank you for choosing Elegance Jewelry! 💍
               </div>
 
               {/* Price Breakdown */}
-              <div className="border-t-2 border-gray-100 pt-4 space-y-2.5">
+              <div className="border-t-2 border-gray-100 dark:border-gray-700 pt-4 space-y-2.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold text-gray-900">₹{state.total.toLocaleString()}</span>
+                  <span className="text-gray-600 dark:text-gray-300">Subtotal</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">₹{state.total.toLocaleString()}</span>
                 </div>
                 
                 {productDiscountTotal > 0 && (
                   <>
-                    <div className="flex justify-between text-sm bg-green-50 -mx-5 px-5 py-1.5">
-                      <span className="flex items-center gap-1 text-green-700 font-medium">
+                    <div className="flex justify-between text-sm bg-green-50 dark:bg-green-900/20 -mx-5 px-5 py-1.5">
+                      <span className="flex items-center gap-1 text-green-700 dark:text-green-400 font-medium">
                         <Gift className="h-3.5 w-3.5" />
                         Product Discounts
                       </span>
-                      <span className="font-bold text-green-700">-₹{productDiscountTotal.toLocaleString()}</span>
+                      <span className="font-bold text-green-700 dark:text-green-400">-₹{productDiscountTotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">After Discounts</span>
-                      <span className="font-semibold text-gray-900">₹{subtotalAfterProductDiscounts.toLocaleString()}</span>
+                      <span className="text-gray-600 dark:text-gray-300">After Discounts</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">₹{subtotalAfterProductDiscounts.toLocaleString()}</span>
                     </div>
                   </>
                 )}
                 
                 {appliedCoupon && (
-                  <div className="flex justify-between text-sm bg-purple-50 -mx-5 px-5 py-1.5">
-                    <span className="flex items-center gap-1 text-purple-700 font-medium">
+                  <div className="flex justify-between text-sm bg-purple-50 dark:bg-purple-900/20 -mx-5 px-5 py-1.5">
+                    <span className="flex items-center gap-1 text-purple-700 dark:text-purple-400 font-medium">
                       <Tag className="h-3.5 w-3.5" />
                       Coupon ({appliedCoupon.code})
                     </span>
-                    <span className="font-bold text-purple-700">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
+                    <span className="font-bold text-purple-700 dark:text-purple-400">-₹{appliedCoupon.discountAmount.toLocaleString()}</span>
                   </div>
                 )}
                 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold text-green-600 flex items-center gap-1">
+                  <span className="text-gray-600 dark:text-gray-300">Shipping</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" />
                     Free
                   </span>
                 </div>
                 
-                <div className="flex justify-between items-baseline pt-2.5 border-t-2 border-gray-200">
-                  <span className="text-base font-semibold text-gray-900">Total Amount</span>
+                <div className="flex justify-between items-baseline pt-2.5 border-t-2 border-gray-200 dark:border-gray-700">
+                  <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Total Amount</span>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-gold-600">
+                    <span className="text-2xl font-bold text-gold-600 dark:text-gold-400">
                       ₹{calculateFinalTotal().toLocaleString()}
                     </span>
                     {(productDiscountTotal > 0 || appliedCoupon) && (
-                      <p className="text-xs text-green-600 font-semibold mt-0.5">
+                      <p className="text-xs text-green-600 dark:text-green-400 font-semibold mt-0.5">
                         🎉 You save ₹{(productDiscountTotal + (appliedCoupon?.discountAmount || 0)).toLocaleString()}!
                       </p>
                     )}
@@ -839,18 +839,18 @@ Thank you for choosing Elegance Jewelry! 💍
               {/* WhatsApp Info Box */}
               <div className={`mt-5 p-4 rounded-lg border-2 ${
                 isOnline
-                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
-                  : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200'
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700'
+                  : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-700'
               }`}>
                 <div className="flex items-start gap-2.5">
-                  <div className={`p-1.5 rounded-lg ${isOnline ? 'bg-green-100' : 'bg-red-100'}`}>
-                    <MessageCircle className={`h-4 w-4 ${isOnline ? 'text-green-600' : 'text-red-600'}`} />
+                  <div className={`p-1.5 rounded-lg ${isOnline ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
+                    <MessageCircle className={`h-4 w-4 ${isOnline ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
                   </div>
                   <div className="flex-1">
-                    <p className={`text-sm font-bold mb-0.5 ${isOnline ? 'text-green-900' : 'text-red-900'}`}>
+                    <p className={`text-sm font-bold mb-0.5 ${isOnline ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
                       {isOnline ? '✅ WhatsApp Checkout Ready' : '⚠️ Store Currently Offline'}
                     </p>
-                    <p className={`text-xs leading-relaxed ${isOnline ? 'text-green-700' : 'text-red-700'}`}>
+                    <p className={`text-xs leading-relaxed ${isOnline ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
                       {isOnline
                         ? 'Your order will be sent via WhatsApp for quick processing. We\'ll confirm availability and share payment details.'
                         : 'Orders are temporarily paused. Please check back later or contact us for assistance.'}
