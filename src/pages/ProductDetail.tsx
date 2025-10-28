@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, ArrowLeft, Star } from 'lucide-react';
+import { Heart, ShoppingBag, ArrowLeft, Star, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import RecommendedProducts from '../components/RecommendedProducts';
@@ -29,6 +29,7 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [recommended, setRecommended] = useState<Product[]>([]);
+  const [categoryCoupons, setCategoryCoupons] = useState<any[]>([]);
 
   const { dispatch: cartDispatch } = useCart();
   const { state: wishlistState, dispatch: wishlistDispatch } = useWishlist();
@@ -85,6 +86,25 @@ const ProductDetail: React.FC = () => {
       fetchRecommendations();
     }
   }, [id, backendUrl]);
+
+  // Fetch coupons for this product's category
+  useEffect(() => {
+    const fetchCategoryCoupons = async () => {
+      if (!product) return;
+      
+      try {
+        const res = await fetch(`${backendUrl}/api/coupons/category/${product.category}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCategoryCoupons(data.coupons || []);
+        }
+      } catch (error) {
+        console.error('Error fetching category coupons:', error);
+      }
+    };
+    
+    fetchCategoryCoupons();
+  }, [product, backendUrl]);
 
   if (loading) {
     return (
@@ -180,6 +200,30 @@ const ProductDetail: React.FC = () => {
             <div className="text-4xl font-bold text-gold-600 mb-6">
               ₹{product.price.toLocaleString()}
             </div>
+
+            {/* Available Coupons */}
+            {categoryCoupons.length > 0 && (
+              <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Available Offers
+                </h3>
+                <div className="space-y-2">
+                  {categoryCoupons.map((coupon, index) => (
+                    <div key={index} className="flex items-start">
+                      <span className="text-green-700 dark:text-green-300 mr-2">•</span>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Use code <span className="font-mono font-bold bg-white dark:bg-gray-700 px-2 py-0.5 rounded">{coupon.code}</span> to get{' '}
+                        {coupon.discountType === 'percentage' 
+                          ? `${coupon.discountValue}% off` 
+                          : `₹${coupon.discountValue} off`}
+                        {coupon.minPurchase > 0 && ` on orders above ₹${coupon.minPurchase.toLocaleString()}`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <p className="text-gray-700 text-lg leading-relaxed mb-8">
               {product.description}

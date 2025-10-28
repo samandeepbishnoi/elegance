@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import natural from 'natural';
 import { cosineSimilarity, getProductText, calculateWeightedSimilarity } from './utils/similarity.js';
+import couponRoutes from './routes/couponRoutes.js';
 
 dotenv.config();
 
@@ -159,6 +160,9 @@ const authenticateMainAdmin = (req, res, next) => {
 };
 
 // Routes
+
+// Mount Coupon Routes (authentication handled within routes)
+app.use('/api/coupons', couponRoutes);
 
 // Admin Authentication
 app.post('/api/admin/register', async (req, res) => {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
+import CouponManagement from '../components/CouponManagement';
 
 interface Product {
   _id: string;
@@ -13,6 +14,8 @@ interface Product {
   tags: string[];
   description: string;
   inStock: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Admin {
@@ -45,6 +48,7 @@ const AdminDashboard: React.FC = () => {
   const [pendingAdmins, setPendingAdmins] = useState<Admin[]>([]);
   const [allAdmins, setAllAdmins] = useState<Admin[]>([]);
   const [showAdminManagement, setShowAdminManagement] = useState(false);
+  const [showCouponManagement, setShowCouponManagement] = useState(false);
   const [isMainAdmin, setIsMainAdmin] = useState(false);
   const { isOnline, setStoreStatus } = useStore();
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -282,8 +286,8 @@ const AdminDashboard: React.FC = () => {
     }
 
     filtered.sort((a, b) => {
-      const dateA = new Date(a.updatedAt).getTime();
-      const dateB = new Date(b.updatedAt).getTime();
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
       return sortByDate === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
@@ -377,15 +381,41 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Add Product Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors flex items-center"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add New Product
-          </button>
+        {/* Action Buttons */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Add Product Button */}
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors flex items-center justify-center"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add New Product
+            </button>
+
+            {/* Manage Admins Button */}
+            {isMainAdmin && (
+              <button
+                onClick={() => setShowAdminManagement(!showAdminManagement)}
+                className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center relative"
+              >
+                {showAdminManagement ? 'Hide Admin Management' : 'Manage Admins'}
+                {pendingAdmins.length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs absolute -top-2 -right-2">
+                    {pendingAdmins.length}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Manage Coupons Button */}
+            <button
+              onClick={() => setShowCouponManagement(!showCouponManagement)}
+              className="bg-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center"
+            >
+              {showCouponManagement ? 'Hide Coupon Management' : 'Manage Coupons'}
+            </button>
+          </div>
         </div>
 
         {/* Product Form Modal */}
@@ -540,22 +570,9 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {/* Admin Management Section */}
-        {isMainAdmin && (
+        {isMainAdmin && showAdminManagement && (
           <div className="mb-8">
-            <button
-              onClick={() => setShowAdminManagement(!showAdminManagement)}
-              className="mb-4 bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-            >
-              {showAdminManagement ? 'Hide Admin Management' : 'Manage Admins'}
-              {pendingAdmins.length > 0 && (
-                <span className="ml-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs">
-                  {pendingAdmins.length}
-                </span>
-              )}
-            </button>
-
-            {showAdminManagement && (
-              <div className="space-y-6">
+            <div className="space-y-6">
                 {/* Pending Admins */}
                 {pendingAdmins.length > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -711,7 +728,16 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+          </div>
+        )}
+
+        {/* Coupon Management Section */}
+        {showCouponManagement && (
+          <div className="mb-8">
+            <CouponManagement 
+              token={auth.token || localStorage.getItem('adminToken') || ''}
+              backendUrl={backendUrl}
+            />
           </div>
         )}
 
@@ -821,15 +847,17 @@ const AdminDashboard: React.FC = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(product)}
-                          className="text-gold-600 hover:text-gold-900 transition-colors"
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                          title="Edit"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(product._id)}
-                          className="text-red-600 hover:text-red-900 transition-colors"
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                          title="Delete"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                       </div>
                     </td>
