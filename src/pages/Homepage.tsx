@@ -24,6 +24,17 @@ const Homepage: React.FC = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([1, 500000]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fuse.js configuration for fuzzy search
   const fuse = new Fuse(products, {
@@ -182,33 +193,39 @@ const Homepage: React.FC = () => {
         <div className="flex gap-6">
           {/* Mobile Filter Backdrop */}
           <AnimatePresence>
-            {showFilters && (
+            {showFilters && !isDesktop && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setShowFilters(false)}
-                className="fixed inset-0 top-0 bg-black/50 z-40 lg:hidden"
+                className="fixed inset-0 top-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+                aria-label="Close filters"
               />
             )}
           </AnimatePresence>
 
           {/* Filters Sidebar - Fixed */}
           <AnimatePresence>
-            {(showFilters || window.innerWidth >= 1024) && (
+            {(showFilters || isDesktop) && (
               <motion.div
                 initial={{ x: -300, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -300, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="fixed lg:sticky top-[180px] left-0 lg:left-auto z-50 lg:z-0 w-80 lg:w-72 h-[calc(100vh-180px)] lg:h-auto overflow-y-auto lg:overflow-visible"
+                onClick={(e) => e.stopPropagation()}
               >
                 {/* Mobile Close Button - Positioned outside filter card */}
                 <div className="lg:hidden sticky top-0 z-20 flex justify-end p-4 pb-2">
                   <button
-                    onClick={() => setShowFilters(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowFilters(false);
+                    }}
                     className="p-2.5 bg-white dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 shadow-lg border border-gray-200 dark:border-gray-700 hover:border-gold-400 dark:hover:border-gold-400 transition-colors"
+                    aria-label="Close filters"
                   >
                     <X className="h-5 w-5" />
                   </button>

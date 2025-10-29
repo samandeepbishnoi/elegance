@@ -6,9 +6,13 @@ import { useWishlist } from '../context/WishlistContext';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
 import SmartSearch from './SmartSearch';
+import CartDrawer from './CartDrawer';
+import WishlistDrawer from './WishlistDrawer';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const { state: cartState } = useCart();
   const { state: wishlistState } = useWishlist();
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -52,8 +56,8 @@ const Navbar: React.FC = () => {
             >
               Catalog
             </Link>
-            <Link
-              to="/wishlist"
+            <button
+              onClick={() => setIsWishlistOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
             >
               <Heart className="h-6 w-6" />
@@ -62,9 +66,9 @@ const Navbar: React.FC = () => {
                   {wishlistState.items.length}
                 </span>
               )}
-            </Link>
-            <Link
-              to="/cart"
+            </button>
+            <button
+              onClick={() => setIsCartOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
             >
               <ShoppingBag className="h-6 w-6" />
@@ -73,7 +77,7 @@ const Navbar: React.FC = () => {
                   {cartState.items.length}
                 </span>
               )}
-            </Link>
+            </button>
             <button
               onClick={toggleDarkMode}
               className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
@@ -85,13 +89,35 @@ const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-4">
+            {/* Wishlist Icon - Always Visible */}
             <button
-              onClick={toggleDarkMode}
-              className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
-              aria-label="Toggle dark mode"
+              onClick={() => setIsWishlistOpen(true)}
+              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              aria-label="Open wishlist"
             >
-              {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+              <Heart className="h-6 w-6" />
+              {wishlistState.items.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {wishlistState.items.length}
+                </span>
+              )}
             </button>
+            
+            {/* Cart Icon - Always Visible */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              aria-label="Open cart"
+            >
+              <ShoppingBag className="h-6 w-6" />
+              {cartState.items.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartState.items.length}
+                </span>
+              )}
+            </button>
+
+            {/* Hamburger Menu */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
@@ -124,27 +150,36 @@ const Navbar: React.FC = () => {
               >
                 Catalog
               </Link>
-              <Link
-                to="/wishlist"
-                className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
-                onClick={() => setIsOpen(false)}
+              
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => {
+                  toggleDarkMode();
+                  setIsOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
               >
-                <Heart className="h-5 w-5 mr-2" />
-                Wishlist ({wishlistState.items.length})
-              </Link>
-              <Link
-                to="/cart"
-                className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
-                onClick={() => setIsOpen(false)}
-              >
-                <ShoppingBag className="h-5 w-5 mr-2" />
-                Cart ({cartState.items.length})
-              </Link>
+                {isDarkMode ? (
+                  <>
+                    <Sun className="h-5 w-5 mr-2" />
+                    Light Mode
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-5 w-5 mr-2" />
+                    Dark Mode
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}
       </div>
     </nav>
+
+    {/* Drawers */}
+    <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+    <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </>
   );
 };
