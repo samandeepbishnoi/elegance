@@ -17,6 +17,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { StoreProvider } from './context/StoreContext';
 import { DiscountProvider } from './context/DiscountContext';
+import { DiscountProvider as DiscountBannerProvider } from './context/DiscountBannerContext';
 
 function App() {
   return (
@@ -24,20 +25,21 @@ function App() {
       <ThemeProvider>
         <StoreProvider>
           <DiscountProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <Router>
-                  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-                    <Navbar />
-                    <main>
-                      <Routes>
-                        <Route path="/" element={<Landing />} />
-                        <Route path="/catalog" element={<Homepage />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/wishlist" element={<Wishlist />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/admin/login" element={<AdminLogin />} />
+            <DiscountBannerProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <Router>
+                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+                      <Navbar />
+                      <main>
+                        <Routes>
+                          <Route path="/" element={<Landing />} />
+                          <Route path="/catalog" element={<Homepage />} />
+                          <Route path="/product/:id" element={<ProductDetail />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/wishlist" element={<Wishlist />} />
+                          <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/admin/login" element={<AdminLogin />} />
                         <Route path="/admin/register" element={<AdminRegister />} />
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
                       </Routes>
@@ -48,6 +50,7 @@ function App() {
                 </Router>
               </WishlistProvider>
             </CartProvider>
+            </DiscountBannerProvider>
           </DiscountProvider>
         </StoreProvider>
       </ThemeProvider>

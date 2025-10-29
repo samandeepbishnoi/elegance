@@ -1,12 +1,10 @@
 import express from 'express';
 import Discount from '../models/Discount.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Middleware to authenticate token (should be imported from server.js or a separate auth module)
-// For now, we'll assume it's passed from server.js when routes are registered
-
-// GET all discounts
+// GET all discounts (PUBLIC - for displaying on website)
 router.get('/', async (req, res) => {
   try {
     const { scope, category, isActive, includeExpired } = req.query;
@@ -47,7 +45,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET single discount by ID
+// GET single discount by ID (PUBLIC)
 router.get('/:id', async (req, res) => {
   try {
     const discount = await Discount.findById(req.params.id)
@@ -94,8 +92,8 @@ router.get('/product/:productId', async (req, res) => {
   }
 });
 
-// CREATE a new discount (admin only)
-router.post('/', async (req, res) => {
+// CREATE a new discount (admin only - PROTECTED)
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const {
       name,
@@ -162,8 +160,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// UPDATE a discount (admin only)
-router.put('/:id', async (req, res) => {
+// UPDATE a discount (admin only - PROTECTED)
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -214,8 +212,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE a discount (admin only)
-router.delete('/:id', async (req, res) => {
+// DELETE a discount (admin only - PROTECTED)
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     

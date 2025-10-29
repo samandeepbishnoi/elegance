@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { useDiscount } from '../context/DiscountBannerContext';
 
 interface Discount {
   _id: string;
@@ -17,68 +18,104 @@ const DiscountBanner: React.FC = () => {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const { setHasActiveDiscounts } = useDiscount();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   useEffect(() => {
     const fetchActiveDiscounts = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/discounts/active`);
+        // Fetch all active discounts (not expired)
+        const response = await fetch(`${backendUrl}/api/discounts?isActive=true&includeExpired=false`);
+        console.log('Discount API Response Status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
-          // Filter only global discounts for top banner
-          const globalDiscounts = data.filter((d: Discount) => d.isActive && d.scope === 'global');
-          setDiscounts(globalDiscounts);
+          console.log('Fetched discounts:', data);
+          console.log('Number of active discounts:', data.length);
+          
+          // Show all active discounts (global, category, and product-specific)
+          setDiscounts(data);
+          setHasActiveDiscounts(data.length > 0);
+        } else {
+          console.error('Failed to fetch discounts:', response.statusText);
+          setHasActiveDiscounts(false);
         }
       } catch (error) {
         console.error('Error fetching discounts:', error);
+        setHasActiveDiscounts(false);
       }
     };
 
     fetchActiveDiscounts();
-  }, [backendUrl]);
+    
+    // Refresh discounts every 5 minutes to catch new ones
+    const refreshInterval = setInterval(fetchActiveDiscounts, 5 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [backendUrl, setHasActiveDiscounts]);
 
   useEffect(() => {
     if (discounts.length <= 1 || isHovered) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % discounts.length);
-    }, 4000);
+    }, 3500); // Changed to 3.5 seconds for better readability
 
     return () => clearInterval(interval);
   }, [discounts.length, isHovered]);
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + discounts.length) % discounts.length);
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % discounts.length);
-  };
-
   const formatDiscount = (discount: Discount) => {
+    let discountText = '';
     if (discount.discountType === 'percentage') {
-      return `${discount.discountValue}% OFF`;
+      discountText = `${discount.discountValue}% OFF`;
+    } else {
+      discountText = `₹${discount.discountValue} OFF`;
     }
-    return `₹${discount.discountValue} OFF`;
+    
+    // Add scope information
+    let scopeText = '';
+    if (discount.scope === 'category' && discount.category) {
+      scopeText = ` on ${discount.category.charAt(0).toUpperCase() + discount.category.slice(1)}`;
+    } else if (discount.scope === 'global') {
+      scopeText = ' Sitewide';
+    }
+    
+    return discountText + scopeText;
   };
 
   if (discounts.length === 0) return null;
 
   return (
-    <div
-      className="relative bg-gradient-to-r from-gold-600 via-amber-500 to-gold-600 dark:from-gold-700 dark:via-amber-600 dark:to-gold-700 text-white overflow-hidden"
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="sticky top-0 z-50 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-600 text-white overflow-hidden shadow-md"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Animated Gradient Background */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-400 opacity-0"
+        animate={{
+          opacity: [0, 0.3, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
       {/* Shimmer Effect */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
         animate={{
           x: ['-100%', '200%'],
         }}
         transition={{
-          duration: 3,
+          duration: 2.5,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -86,74 +123,72 @@ const DiscountBanner: React.FC = () => {
       />
 
       {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2">
         <div className="flex items-center justify-center gap-3">
-          {/* Previous Button */}
-          {discounts.length > 1 && (
-            <button
-              onClick={handlePrev}
-              className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-              aria-label="Previous discount"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-          )}
-
           {/* Banner Content */}
-          <div className="flex-1 flex items-center justify-center gap-2 min-h-[28px]">
-            <Tag className="h-5 w-5 flex-shrink-0 hidden sm:block" />
+          <div className="flex-1 flex items-center justify-center gap-2 min-h-[24px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className="flex items-center gap-2 text-center"
               >
-                <Sparkles className="h-4 w-4 flex-shrink-0 sm:hidden" />
-                <span className="font-bold text-sm sm:text-base">
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 360],
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'linear'
+                  }}
+                >
+                  <Sparkles className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
+                </motion.div>
+                
+                {/* Discount Name - Prominent */}
+                <span className="font-bold text-xs sm:text-sm tracking-wide drop-shadow-md uppercase">
+                  {discounts[currentIndex].name}
+                </span>
+                
+                <span className="hidden sm:inline text-xs sm:text-sm font-semibold">-</span>
+                
+                {/* Discount Value */}
+                <span className="font-extrabold text-sm sm:text-base tracking-wide drop-shadow-md text-white">
                   {formatDiscount(discounts[currentIndex])}
                 </span>
-                <span className="hidden sm:inline text-sm sm:text-base">•</span>
-                <span className="text-sm sm:text-base">
-                  {discounts[currentIndex].description || discounts[currentIndex].name}
-                </span>
+                
+                {/* Description (if available) */}
+                {discounts[currentIndex].description && (
+                  <>
+                    <span className="hidden md:inline text-xs font-semibold">•</span>
+                    <span className="hidden md:inline text-xs font-medium opacity-90">
+                      {discounts[currentIndex].description}
+                    </span>
+                  </>
+                )}
+                
+                <motion.div
+                  animate={{ 
+                    rotate: [0, -360],
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'linear'
+                  }}
+                >
+                  <Sparkles className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
+                </motion.div>
               </motion.div>
             </AnimatePresence>
           </div>
-
-          {/* Next Button */}
-          {discounts.length > 1 && (
-            <button
-              onClick={handleNext}
-              className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-              aria-label="Next discount"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          )}
         </div>
-
-        {/* Dots Indicator */}
-        {discounts.length > 1 && (
-          <div className="flex items-center justify-center gap-1.5 mt-2">
-            {discounts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`h-1.5 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'w-6 bg-white'
-                    : 'w-1.5 bg-white/50 hover:bg-white/70'
-                }`}
-                aria-label={`Go to discount ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

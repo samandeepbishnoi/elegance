@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Heart, Menu, X, Crown, Moon, Sun, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { useDiscount } from '../context/DiscountBannerContext';
 import SmartSearch from './SmartSearch';
 import CartDrawer from './CartDrawer';
 import WishlistDrawer from './WishlistDrawer';
@@ -19,11 +20,19 @@ const Navbar: React.FC = () => {
   const { state: wishlistState } = useWishlist();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { isOnline } = useStore();
+  const { hasActiveDiscounts } = useDiscount();
+  const location = useLocation();
+  
+  // Show discount banner on main shopping pages, but not on admin/auth pages
+  const showDiscountBanner = !location.pathname.startsWith('/admin') && 
+                             !location.pathname.startsWith('/checkout') &&
+                             !location.pathname.startsWith('/cart') &&
+                             !location.pathname.includes('/product/');
 
   return (
     <>
-      {/* Discount Banner */}
-      <DiscountBanner />
+      {/* Discount Banner - Shows on main shopping pages */}
+      {showDiscountBanner && <DiscountBanner />}
       
       {!isOnline && (
         <div className="bg-red-600 dark:bg-red-700 text-white py-2 px-4 text-center text-sm font-medium">
@@ -31,7 +40,7 @@ const Navbar: React.FC = () => {
           Store is currently offline. Orders are paused.
         </div>
       )}
-    <nav className="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors">
+    <nav className={`bg-white dark:bg-gray-800 shadow-lg sticky z-40 transition-colors ${showDiscountBanner && hasActiveDiscounts ? 'top-[40px]' : 'top-0'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}

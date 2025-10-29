@@ -177,8 +177,10 @@ const authenticateMainAdmin = (req, res, next) => {
 // Mount Coupon Routes (authentication handled within routes)
 app.use('/api/coupons', couponRoutes);
 
-// Mount Discount Routes (authentication handled within routes)
-app.use('/api/discounts', authenticateToken, discountRoutes);
+// Mount Discount Routes 
+// Public GET requests for fetching discounts (for banner/display)
+// Protected POST/PUT/DELETE requests (for admin operations)
+app.use('/api/discounts', discountRoutes);
 
 // Admin Authentication
 app.post('/api/admin/register', async (req, res) => {

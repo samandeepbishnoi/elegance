@@ -155,7 +155,7 @@ const Homepage: React.FC = () => {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="sticky top-16 z-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Search Bar with Fuzzy Search */}
           <div className="mb-4">
@@ -239,7 +239,7 @@ const Homepage: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* Filters Sidebar - Fixed */}
+          {/* Filters Sidebar */}
           <AnimatePresence>
             {(showFilters || isDesktop) && (
               <motion.div
@@ -247,7 +247,7 @@ const Homepage: React.FC = () => {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -300, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed lg:sticky top-[180px] left-0 lg:left-auto z-50 lg:z-0 w-80 lg:w-72 h-[calc(100vh-180px)] lg:h-auto overflow-y-auto lg:overflow-visible"
+                className="fixed lg:relative top-0 left-0 lg:left-auto z-50 lg:z-0 w-80 lg:w-72 h-screen lg:h-auto overflow-y-auto lg:overflow-visible"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Mobile Close Button - Positioned outside filter card */}
