@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductFilters from '../components/ProductFilters';
 import { Sparkles, SlidersHorizontal, X, Search } from 'lucide-react';
@@ -17,6 +18,7 @@ interface Product {
 }
 
 const Homepage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,14 @@ const Homepage: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Read category from URL parameters on component mount
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   // Fuse.js configuration for fuzzy search
   const fuse = new Fuse(products, {
@@ -174,6 +184,29 @@ const Homepage: React.FC = () => {
               </p>
             )}
           </div>
+
+          {/* Active Filters Indicator */}
+          {selectedCategory !== 'all' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 flex items-center gap-2 flex-wrap"
+            >
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Active Filter:
+              </span>
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md">
+                <span className="capitalize">{selectedCategory}</span>
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                  aria-label="Clear category filter"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Mobile Filter Toggle */}
           <div className="lg:hidden">

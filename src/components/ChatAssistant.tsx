@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Send, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -18,7 +18,12 @@ interface Product {
   category: string;
 }
 
-export default function ChatAssistant() {
+interface ChatAssistantProps {
+  initialMessage?: string;
+  onMessageSent?: () => void;
+}
+
+export default function ChatAssistant({ initialMessage, onMessageSent }: ChatAssistantProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -31,6 +36,7 @@ export default function ChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasProcessedInitialMessage = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,19 +52,8 @@ export default function ChatAssistant() {
     }
   }, [isOpen]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      text: inputValue.trim(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
+  // Separate function to send message to AI
+  const sendMessageToAI = useCallback(async (messageText: string) => {
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -79,7 +74,7 @@ export default function ChatAssistant() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: userMessage.text,
+          message: messageText,
           apiKey: apiKey,
         }),
       });
@@ -111,7 +106,72 @@ export default function ChatAssistant() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const handleSendMessage = useCallback(async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      text: inputValue.trim(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputValue.trim();
+    setInputValue('');
+    setIsLoading(true);
+
+    if (onMessageSent) {
+      onMessageSent();
+    }
+
+    await sendMessageToAI(messageToSend);
+  }, [inputValue, isLoading, onMessageSent, sendMessageToAI]);
+
+  // Handle initial message when chat opens
+  useEffect(() => {
+    if (isOpen && initialMessage && !hasProcessedInitialMessage.current) {
+      hasProcessedInitialMessage.current = true;
+      // Auto-send immediately without showing in input
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        text: initialMessage,
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+
+      sendMessageToAI(initialMessage);
+    }
+  }, [isOpen, initialMessage]);
+
+  // Listen for custom events to open chat with message
+  useEffect(() => {
+    const handleOpenChat = (event: CustomEvent) => {
+      const message = event.detail?.message;
+      if (message) {
+        setIsOpen(true);
+        hasProcessedInitialMessage.current = false;
+        // Auto-send immediately
+        setTimeout(() => {
+          const userMessage: Message = {
+            id: Date.now().toString(),
+            type: 'user',
+            text: message,
+          };
+          setMessages(prev => [...prev, userMessage]);
+          setIsLoading(true);
+          sendMessageToAI(message);
+        }, 300);
+      }
+    };
+
+    window.addEventListener('openChatWithMessage' as any, handleOpenChat);
+    return () => {
+      window.removeEventListener('openChatWithMessage' as any, handleOpenChat);
+    };
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Heart, Menu, X, Crown, Moon, Sun, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +9,7 @@ import { useStore } from '../context/StoreContext';
 import SmartSearch from './SmartSearch';
 import CartDrawer from './CartDrawer';
 import WishlistDrawer from './WishlistDrawer';
+import DiscountBanner from './DiscountBanner';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +22,9 @@ const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Discount Banner */}
+      <DiscountBanner />
+      
       {!isOnline && (
         <div className="bg-red-600 dark:bg-red-700 text-white py-2 px-4 text-center text-sm font-medium">
           <Lock className="inline h-4 w-4 mr-2" />
@@ -46,45 +51,62 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8 flex-shrink-0">
             <Link
               to="/"
-              className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-300 group"
             >
               Home
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gold-500 to-gold-600 group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               to="/catalog"
-              className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-300 group"
             >
               Catalog
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gold-500 to-gold-600 group-hover:w-full transition-all duration-300"></span>
             </Link>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsWishlistOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
             >
               <Heart className="h-6 w-6" />
               {wishlistState.items.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-lg"
+                >
                   {wishlistState.items.length}
-                </span>
+                </motion.span>
               )}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsCartOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
             >
               <ShoppingBag className="h-6 w-6" />
               {cartState.items.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-lg"
+                >
                   {cartState.items.length}
-                </span>
+                </motion.span>
               )}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 180 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.3 }}
               onClick={toggleDarkMode}
               className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
               aria-label="Toggle dark mode"
             >
               {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-            </button>
+            </motion.button>
           </div>
 
           {/* Mobile menu button */}
