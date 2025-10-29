@@ -97,9 +97,10 @@ const ShopByOccasion: React.FC = () => {
         </motion.div>
 
         {/* Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           {occasions.map((occasion, index) => {
             const IconComponent = occasion.icon;
+            const isOddLast = occasions.length % 2 !== 0 && index === occasions.length - 1;
             return (
               <motion.div
                 key={occasion.name}
@@ -115,7 +116,9 @@ const ShopByOccasion: React.FC = () => {
                 whileHover={{ y: -8, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleOccasionClick(occasion)}
-                className="group relative cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                className={`group relative cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${
+                  isOddLast ? 'col-span-2 md:col-span-1 justify-self-center w-[calc(50%-0.75rem)] md:w-full' : ''
+                }`}
               >
                 {/* Background Image */}
                 <div className="relative h-64 sm:h-72 overflow-hidden">

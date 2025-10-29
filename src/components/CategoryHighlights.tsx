@@ -154,7 +154,11 @@ const CategoryHighlights: React.FC = () => {
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleCategoryClick(category.name)}
-              className="group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300 w-full md:w-[calc(33.333%-1rem)]"
+              className={`group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300 w-[calc(50%-0.75rem)] md:w-[calc(33.333%-1rem)] ${
+                categories.length % 2 !== 0 && index === categories.length - 1 
+                  ? 'md:w-[calc(33.333%-1rem)]' 
+                  : ''
+              }`}
             >
               <div className="relative h-64 overflow-hidden">
                 <motion.img
