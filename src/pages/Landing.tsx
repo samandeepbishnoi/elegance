@@ -106,7 +106,8 @@ const Landing: React.FC = () => {
   ];
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/1234567890?text=Hello! I am interested in your jewelry collection.', '_blank');
+    const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '919896076856';
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello! I am interested in your jewelry collection.')}`, '_blank');
   };
 
   // Background carousel images

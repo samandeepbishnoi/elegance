@@ -315,8 +315,8 @@ ${customerInfo.notes ? `Notes: ${customerInfo.notes}` : ''}
 Thank you for choosing Elegance Jewelry! 💍
     `.trim();
 
-    // WhatsApp business number (replace with actual number)
-    const whatsappNumber = '919896076856';
+    // WhatsApp business number from environment variable
+    const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '919896076856';
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     
     // Open WhatsApp
