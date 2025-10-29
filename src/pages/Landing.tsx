@@ -109,6 +109,24 @@ const Landing: React.FC = () => {
     window.open('https://wa.me/1234567890?text=Hello! I am interested in your jewelry collection.', '_blank');
   };
 
+  // Background carousel images
+  const backgroundImages = [
+    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1920&h=1080&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1920&h=1080&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1920&h=1080&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1920&h=1080&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1920&h=1080&fit=crop&q=80',
+  ];
+
+  const [currentBgImage, setCurrentBgImage] = useState(0);
+
+  useEffect(() => {
+    const bgTimer = setInterval(() => {
+      setCurrentBgImage((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000); // Change image every 5 seconds
+    return () => clearInterval(bgTimer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
@@ -116,38 +134,32 @@ const Landing: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-white to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
       >
-        {/* Animated Background */}
+        {/* Background Image Carousel */}
         <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -top-1/2 -left-1/2 w-full h-full opacity-10 dark:opacity-5"
-          >
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-yellow-300 to-amber-400 rounded-full blur-3xl"></div>
-          </motion.div>
-          <motion.div
-            animate={{
-              scale: [1.2, 1, 1.2],
-              rotate: [360, 180, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -bottom-1/2 -right-1/2 w-full h-full opacity-10 dark:opacity-5"
-          >
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-amber-300 to-yellow-400 rounded-full blur-3xl"></div>
-          </motion.div>
+          {backgroundImages.map((image, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{
+                opacity: currentBgImage === index ? 1 : 0,
+                scale: currentBgImage === index ? 1 : 1.1,
+              }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <div
+                className="w-full h-full bg-cover bg-center"
+                style={{ backgroundImage: `url(${image})` }}
+              />
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 dark:from-black/80 dark:via-black/60 dark:to-black/80"></div>
+            </motion.div>
+          ))}
+          
+          {/* Additional decorative gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-gray-900/30"></div>
         </div>
 
         <motion.div
@@ -173,17 +185,17 @@ const Landing: React.FC = () => {
 
           <motion.h1
             variants={itemVariants}
-            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-2xl"
           >
             Elegance in Every
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600 dark:from-amber-400 dark:to-yellow-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400">
               Precious Moment
             </span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed px-4"
+            className="text-lg sm:text-xl md:text-2xl text-white mb-12 max-w-3xl mx-auto leading-relaxed px-4 drop-shadow-lg"
           >
             Discover timeless beauty with our exquisite collection of handcrafted jewelry.
             Each piece tells a story of artistry, passion, and uncompromising quality.
@@ -204,43 +216,12 @@ const Landing: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleWhatsAppClick}
-              className="w-full sm:w-auto bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-900 dark:border-gray-300 px-8 sm:px-10 py-4 rounded-full text-base sm:text-lg font-semibold shadow-xl hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all flex items-center justify-center"
+              className="w-full sm:w-auto bg-white/90 backdrop-blur-sm text-gray-900 border-2 border-white px-8 sm:px-10 py-4 rounded-full text-base sm:text-lg font-semibold shadow-xl hover:bg-white hover:border-amber-400 transition-all flex items-center justify-center"
             >
               Contact Us
               <MessageCircle className="ml-2 h-5 w-5" />
             </motion.button>
           </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="mt-12 sm:mt-16 flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600 dark:text-gray-400 px-4"
-          >
-            <div className="flex items-center">
-              <Star className="h-4 sm:h-5 w-4 sm:w-5 text-amber-500 mr-1" />
-              <span>4.9/5 Rating</span>
-            </div>
-            <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 hidden sm:block"></div>
-            <div>10,000+ Happy Customers</div>
-            <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 hidden sm:block"></div>
-            <div>Certified Authenticity</div>
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:flex"
-        >
-          <div className="flex flex-col items-center text-gray-500 dark:text-gray-400">
-            <span className="text-sm mb-2">Scroll to explore</span>
-            <div className="w-6 h-10 border-2 border-gray-400 dark:border-gray-500 rounded-full flex justify-center">
-              <motion.div
-                animate={{ y: [0, 12, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="w-1.5 h-3 bg-gray-400 dark:bg-gray-500 rounded-full mt-2"
-              ></motion.div>
-            </div>
-          </div>
         </motion.div>
       </motion.section>
 
