@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ChatAssistant from './components/ChatAssistant';
+import RealtimeIndicator from './components/RealtimeIndicator';
 import Landing from './pages/Landing';
 import Homepage from './pages/Homepage';
 import ProductDetail from './pages/ProductDetail';
@@ -18,41 +19,45 @@ import { ThemeProvider } from './context/ThemeContext';
 import { StoreProvider } from './context/StoreContext';
 import { DiscountProvider } from './context/DiscountContext';
 import { DiscountProvider as DiscountBannerProvider } from './context/DiscountBannerContext';
+import { RealtimeProvider } from './context/RealtimeContext';
 
 function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <StoreProvider>
-          <DiscountProvider>
-            <DiscountBannerProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <Router>
-                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-                      <Navbar />
-                      <main>
-                        <Routes>
-                          <Route path="/" element={<Landing />} />
-                          <Route path="/catalog" element={<Homepage />} />
-                          <Route path="/product/:id" element={<ProductDetail />} />
-                          <Route path="/cart" element={<Cart />} />
-                          <Route path="/wishlist" element={<Wishlist />} />
-                          <Route path="/checkout" element={<Checkout />} />
-                          <Route path="/admin/login" element={<AdminLogin />} />
-                        <Route path="/admin/register" element={<AdminRegister />} />
-                        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                    <ChatAssistant />
-                  </div>
-                </Router>
-              </WishlistProvider>
-            </CartProvider>
-            </DiscountBannerProvider>
-          </DiscountProvider>
-        </StoreProvider>
+        <RealtimeProvider>
+          <StoreProvider>
+            <DiscountProvider>
+              <DiscountBannerProvider>
+                <CartProvider>
+                  <WishlistProvider>
+                    <Router>
+                      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+                        <Navbar />
+                        <main>
+                          <Routes>
+                            <Route path="/" element={<Landing />} />
+                            <Route path="/catalog" element={<Homepage />} />
+                            <Route path="/product/:id" element={<ProductDetail />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/wishlist" element={<Wishlist />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/admin/login" element={<AdminLogin />} />
+                          <Route path="/admin/register" element={<AdminRegister />} />
+                          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                        </Routes>
+                      </main>
+                      <Footer />
+                      <ChatAssistant />
+                      <RealtimeIndicator />
+                    </div>
+                  </Router>
+                </WishlistProvider>
+              </CartProvider>
+              </DiscountBannerProvider>
+            </DiscountProvider>
+          </StoreProvider>
+        </RealtimeProvider>
       </ThemeProvider>
     </AuthProvider>
   );

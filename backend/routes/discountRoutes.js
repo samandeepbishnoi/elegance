@@ -1,6 +1,7 @@
 import express from 'express';
 import Discount from '../models/Discount.js';
 import { authenticateToken } from '../middleware/auth.js';
+import sseManager from '../utils/sseManager.js';
 
 const router = express.Router();
 
@@ -147,6 +148,13 @@ router.post('/', authenticateToken, async (req, res) => {
       await discount.populate('productId', 'name price image category');
     }
     
+    // Broadcast SSE event for new discount
+    sseManager.broadcast('discount_update', {
+      action: 'created',
+      discount: discount.toObject(),
+      message: `New discount created: ${discount.name}`,
+    });
+    
     res.status(201).json({
       message: 'Discount created successfully',
       discount
@@ -199,6 +207,13 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Discount not found' });
     }
     
+    // Broadcast SSE event for discount update
+    sseManager.broadcast('discount_update', {
+      action: 'updated',
+      discount: discount.toObject(),
+      message: `Discount updated: ${discount.name}`,
+    });
+    
     res.json({
       message: 'Discount updated successfully',
       discount
@@ -222,6 +237,14 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     if (!discount) {
       return res.status(404).json({ message: 'Discount not found' });
     }
+    
+    // Broadcast SSE event for discount deletion
+    sseManager.broadcast('discount_update', {
+      action: 'deleted',
+      discountId: id,
+      discountName: discount.name,
+      message: `Discount deleted: ${discount.name}`,
+    });
     
     res.json({ 
       message: 'Discount deleted successfully',
@@ -251,6 +274,13 @@ router.patch('/:id/toggle', async (req, res) => {
     await discount.save();
     
     await discount.populate('productId', 'name price image category');
+    
+    // Broadcast SSE event for discount toggle
+    sseManager.broadcast('discount_update', {
+      action: 'toggled',
+      discount: discount.toObject(),
+      message: `Discount ${discount.isActive ? 'activated' : 'deactivated'}: ${discount.name}`,
+    });
     
     res.json({
       message: `Discount ${discount.isActive ? 'activated' : 'deactivated'} successfully`,

@@ -13,6 +13,7 @@ import { cosineSimilarity, getProductText, calculateWeightedSimilarity } from '.
 import couponRoutes from './routes/couponRoutes.js';
 import discountRoutes from './routes/discountRoutes.js';
 import { calculateProductDiscount, calculateProductsDiscounts, calculateCartDiscount } from './utils/discountCalculator.js';
+import sseManager from './utils/sseManager.js';
 
 dotenv.config();
 
@@ -173,6 +174,38 @@ const authenticateMainAdmin = (req, res, next) => {
 };
 
 // Routes
+
+// SSE (Server-Sent Events) endpoint for real-time updates
+app.get('/api/stream/updates', (req, res) => {
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable buffering for nginx
+  
+  // Enable CORS for SSE
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  // Generate unique client ID
+  const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Add client to SSE manager
+  const client = sseManager.addClient(res, clientId);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    sseManager.removeClient(client);
+  });
+
+  req.on('error', (error) => {
+    console.error(`[SSE] Client ${clientId} error:`, error.message);
+    sseManager.removeClient(client);
+  });
+});
 
 // Mount Coupon Routes (authentication handled within routes)
 app.use('/api/coupons', couponRoutes);
@@ -407,6 +440,14 @@ app.post('/api/products', authenticateToken, async (req, res) => {
     });
 
     await product.save();
+    
+    // Broadcast SSE event for new product
+    sseManager.broadcast('product_update', {
+      action: 'created',
+      product: product.toObject(),
+      message: `New product added: ${product.name}`,
+    });
+    
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -438,6 +479,13 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Broadcast SSE event for product update
+    sseManager.broadcast('product_update', {
+      action: 'updated',
+      product: product.toObject(),
+      message: `Product updated: ${product.name}`,
+    });
+
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -451,6 +499,15 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
+    
+    // Broadcast SSE event for product deletion
+    sseManager.broadcast('product_update', {
+      action: 'deleted',
+      productId: req.params.id,
+      productName: product.name,
+      message: `Product deleted: ${product.name}`,
+    });
+    
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -600,6 +657,14 @@ app.put('/api/store/status', authenticateMainAdmin, async (req, res) => {
     }
 
     await storeStatus.save();
+    
+    // Broadcast SSE event for store status change
+    sseManager.broadcast('store_status', {
+      status: storeStatus.status,
+      updatedAt: storeStatus.updatedAt,
+      message: `Store is now ${status}`,
+    });
+    
     res.json({ message: 'Store status updated successfully', status: storeStatus.status });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -802,7 +867,8 @@ app.get('/api/health', async (req, res) => {
       message: 'Jewelry Catalog API is running',
       database: dbStatus,
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
+      sseClients: sseManager.getClientCount()
     });
   } catch (error) {
     res.status(500).json({ 
@@ -811,6 +877,15 @@ app.get('/api/health', async (req, res) => {
       error: error.message 
     });
   }
+});
+
+// SSE Debug endpoint - Get event log
+app.get('/api/stream/debug', (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  res.json({
+    connectedClients: sseManager.getClientCount(),
+    eventLog: sseManager.getEventLog(limit),
+  });
 });
 
 // Create default admin user

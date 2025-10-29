@@ -59,8 +59,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     refreshStoreStatus();
-    const interval = setInterval(refreshStoreStatus, 30000);
-    return () => clearInterval(interval);
+    // No need for polling interval - SSE will handle real-time updates
   }, []);
 
   return (

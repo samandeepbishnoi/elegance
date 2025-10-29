@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import Coupon from '../models/Coupon.js';
+import sseManager from '../utils/sseManager.js';
 
 const router = express.Router();
 
@@ -94,6 +95,13 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     await coupon.save();
+
+    // Broadcast SSE event for new coupon
+    sseManager.broadcast('coupon_update', {
+      action: 'created',
+      coupon: coupon.toObject(),
+      message: `New coupon created: ${coupon.code}`,
+    });
 
     res.status(201).json({
       message: 'Coupon created successfully',
@@ -229,6 +237,13 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     await coupon.save();
 
+    // Broadcast SSE event for coupon update
+    sseManager.broadcast('coupon_update', {
+      action: 'updated',
+      coupon: coupon.toObject(),
+      message: `Coupon updated: ${coupon.code}`,
+    });
+
     res.json({
       message: 'Coupon updated successfully',
       coupon
@@ -258,6 +273,14 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     await Coupon.findByIdAndDelete(req.params.id);
+
+    // Broadcast SSE event for coupon deletion
+    sseManager.broadcast('coupon_update', {
+      action: 'deleted',
+      couponId: req.params.id,
+      couponCode: coupon.code,
+      message: `Coupon deleted: ${coupon.code}`,
+    });
 
     res.json({
       message: 'Coupon deleted successfully',
