@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Gift } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Gift, RefreshCw } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CartDrawerProps {
@@ -30,6 +31,7 @@ interface ProductWithDiscount {
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const { state, dispatch } = useCart();
+  const { isSyncing } = useAuth();
   const [productsWithDiscounts, setProductsWithDiscounts] = useState<ProductWithDiscount[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalSavings, setTotalSavings] = useState(0);
@@ -131,6 +133,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 <h2 className="text-xl font-serif font-bold text-gray-900 dark:text-gray-100">
                   Shopping Cart
                 </h2>
+                {isSyncing && (
+                  <div className="flex items-center gap-1 text-xs text-gold-600 dark:text-gold-400">
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <span>Syncing...</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={onClose}

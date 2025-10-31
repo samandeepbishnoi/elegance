@@ -4,6 +4,7 @@ import { Heart, ShoppingBag, Sparkles, Tag, X, Gift } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProtectedContent from '../components/ProtectedContent';
 
 interface DiscountInfo {
   hasDiscount: boolean;
@@ -133,20 +134,21 @@ const Wishlist: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gold-100 dark:bg-gold-900/30 rounded-xl">
-                <Heart className="h-6 w-6 text-gold-600 dark:text-gold-400 fill-current" />
-              </div>
-              <div>
+    <ProtectedContent message="Sign in to view your wishlist and save your favorite items">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 sm:mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gold-100 dark:bg-gold-900/30 rounded-xl">
+                  <Heart className="h-6 w-6 text-gold-600 dark:text-gold-400 fill-current" />
+                </div>
+                <div>
                 <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100">
                   My Wishlist
                 </h1>
@@ -332,7 +334,8 @@ const Wishlist: React.FC = () => {
           </motion.div>
         )}
       </div>
-    </div>
+      </div>
+    </ProtectedContent>
   );
 };
 

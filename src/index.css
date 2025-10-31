@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Clerk Auth Modal Centering and Layout Fixes */
+@layer base {
+  /* Center Clerk forms properly */
+  .cl-rootBox {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .cl-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+  }
+
+  .cl-cardBox {
+    width: 100% !important;
+  }
+
+  .cl-main {
+    width: 100% !important;
+  }
+
+  .cl-internal-b3fm6y {
+    width: 100% !important;
+  }
+
+  /* Ensure footer content is centered */
+  .cl-footer {
+    text-align: center !important;
+  }
+
+  .cl-footerPages {
+    justify-content: center !important;
+  }
+}
+
 /* Custom Scrollbar Styles */
 @layer utilities {
   /* Webkit browsers (Chrome, Safari, Edge) */

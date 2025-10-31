@@ -1,4 +1,8 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { userAPI } from '../utils/api';
+import { getGuestCart, saveGuestCart, retryOperation, isOnline } from '../utils/syncUtils';
+import toast from 'react-hot-toast';
 
 interface CartItem {
   _id: string;
@@ -77,25 +81,115 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, (() => {
-    const stored = localStorage.getItem('cartState');
-    return stored ? JSON.parse(stored) : { items: [], total: 0 };
-  })());
+  const { isAuthenticated, user, isLoaded } = useAuth();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
 
-    useEffect(() => {
-      localStorage.setItem('cartState', JSON.stringify(state));
-    }, [state]);
-
+  // Load cart when component mounts or user changes
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      dispatch({ type: 'LOAD_CART', payload: JSON.parse(savedCart) });
-    }
-  }, []);
+    if (!isLoaded) return;
 
+    const loadCart = async () => {
+      setIsSyncing(true);
+      
+      try {
+        if (isAuthenticated && user) {
+          // User is logged in - fetch from backend
+          try {
+            const response = await retryOperation(() => userAPI.getCart(user.id));
+            
+            if (response.data?.items && Array.isArray(response.data.items)) {
+              dispatch({ type: 'LOAD_CART', payload: response.data.items });
+            } else {
+              dispatch({ type: 'LOAD_CART', payload: [] });
+            }
+          } catch (error) {
+            console.error('Error loading cart from backend:', error);
+            
+            // Fallback to localStorage
+            const guestCart = getGuestCart();
+            if (guestCart.length > 0) {
+              dispatch({ type: 'LOAD_CART', payload: guestCart });
+              toast.error('Could not sync cart. Using local data.', {
+                id: 'cart-sync-error', // Prevents duplicate toasts
+              });
+            }
+          }
+        } else {
+          // Guest user - load from localStorage
+          const guestCart = getGuestCart();
+          dispatch({ type: 'LOAD_CART', payload: guestCart });
+        }
+      } catch (error) {
+        console.error('Error in loadCart:', error);
+      } finally {
+        setIsSyncing(false);
+        setIsInitialized(true);
+      }
+    };
+
+    loadCart();
+  }, [isAuthenticated, user, isLoaded]);
+  
+  // Listen for sync events to reload cart after guest data sync
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(state.items));
-  }, [state.items]);
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'data_synced' && isAuthenticated && user) {
+        // Reload cart from backend after sync
+        const reloadCart = async () => {
+          try {
+            const response = await userAPI.getCart(user.id);
+            if (response.data?.items) {
+              dispatch({ type: 'LOAD_CART', payload: response.data.items });
+            }
+          } catch (error) {
+            console.error('Error reloading cart after sync:', error);
+          }
+        };
+        reloadCart();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [isAuthenticated, user]);
+
+  // Save cart to backend or localStorage whenever it changes
+  useEffect(() => {
+    // Don't save during initial load or sync
+    if (!isInitialized || isSyncing) return;
+
+    const saveCart = async () => {
+      if (isAuthenticated && user) {
+        try {
+          // Check if online before attempting to save
+          if (isOnline()) {
+            await retryOperation(() => userAPI.updateCart(user.id, state.items));
+          } else {
+            // Save to localStorage as backup when offline
+            saveGuestCart(state.items);
+          }
+        } catch (error) {
+          console.error('Error saving cart to backend:', error);
+          
+          // Fallback to localStorage
+          saveGuestCart(state.items);
+          toast.error('Cart saved locally. Will sync when online.', {
+            id: 'cart-save-offline', // Prevents duplicate toasts
+          });
+        }
+      } else {
+        // Guest user - save to localStorage
+        saveGuestCart(state.items);
+      }
+    };
+
+    // Debounce save operation
+    const timeoutId = setTimeout(saveCart, 500);
+    return () => clearTimeout(timeoutId);
+  }, [state.items, isAuthenticated, user, isSyncing, isInitialized]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

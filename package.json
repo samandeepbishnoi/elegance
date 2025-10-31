@@ -12,6 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.53.4",
+    "@clerk/clerk-sdk-node": "^4.13.23",
+    "axios": "^1.13.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -25,6 +28,7 @@
     "natural": "^8.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.8.2"
   },
   "devDependencies": {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Heart, ShoppingBag, Sparkles, Gift, Tag } from 'lucide-react';
+import { X, Heart, ShoppingBag, Sparkles, Gift, Tag, RefreshCw } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface WishlistDrawerProps {
@@ -31,6 +32,7 @@ interface ProductWithDiscount {
 const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
   const { state: wishlistState, dispatch: wishlistDispatch } = useWishlist();
   const { dispatch: cartDispatch } = useCart();
+  const { isSyncing } = useAuth();
   const [productsWithDiscounts, setProductsWithDiscounts] = useState<ProductWithDiscount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -116,6 +118,12 @@ const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
                 <h2 className="text-xl font-serif font-bold text-gray-900 dark:text-gray-100">
                   My Wishlist
                 </h2>
+                {isSyncing && (
+                  <div className="flex items-center gap-1 text-xs text-gold-600 dark:text-gold-400">
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <span>Syncing...</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={onClose}

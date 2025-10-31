@@ -1,27 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, Menu, X, Crown, Moon, Sun, Lock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ShoppingBag, Heart, Crown, Moon, Sun, Lock, LogOut, User, Menu, X, LogIn } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
 import { useDiscount } from '../context/DiscountBannerContext';
+import { useAuth } from '../context/AuthContext';
 import SmartSearch from './SmartSearch';
 import CartDrawer from './CartDrawer';
 import WishlistDrawer from './WishlistDrawer';
 import DiscountBanner from './DiscountBanner';
+import AuthModal from './AuthModal';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-in' | 'sign-up'>('sign-in');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  
   const { state: cartState } = useCart();
   const { state: wishlistState } = useWishlist();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { isOnline } = useStore();
   const { hasActiveDiscounts } = useDiscount();
+  const { isAuthenticated, isLoaded, user, signOut } = useAuth();
   const location = useLocation();
+  
+  const openAuthModal = (mode: 'sign-in' | 'sign-up') => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+    setShowUserMenu(false);
+    setIsOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowUserMenu(false);
+  };
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
   
   // Show discount banner on main shopping pages, but not on admin/auth pages
   const showDiscountBanner = !location.pathname.startsWith('/admin') && 
@@ -106,6 +143,8 @@ const Navbar: React.FC = () => {
                 </motion.span>
               )}
             </motion.button>
+            
+            {/* Dark Mode Toggle */}
             <motion.button
               whileHover={{ scale: 1.1, rotate: 180 }}
               whileTap={{ scale: 0.95 }}
@@ -116,11 +155,84 @@ const Navbar: React.FC = () => {
             >
               {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
             </motion.button>
+
+            {/* User Authentication */}
+            {isLoaded && (
+              <>
+                {isAuthenticated && user ? (
+                  <div ref={userMenuRef} className="relative flex items-center gap-2">
+                    {/* User Greeting */}
+                    <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Hi, {user.firstName || 'there'}
+                    </span>
+                    
+                    {/* User Icon Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className="relative"
+                    >
+                      <div className="h-9 w-9 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 flex items-center justify-center text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                        {user.firstName?.charAt(0)}{user.lastName?.charAt(0) || user.email?.charAt(0)}
+                      </div>
+                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+                    </motion.button>
+                    
+                    {/* User Dropdown Menu */}
+                    <AnimatePresence>
+                      {showUserMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full right-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                        >
+                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 flex items-center justify-center text-white font-semibold">
+                                {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                  {user.fullName || user.email}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                  {user.email}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span>Sign Out</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => openAuthModal('sign-in')}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-md text-sm font-semibold"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Login</span>
+                  </motion.button>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Actions */}
           <div className="md:hidden flex items-center space-x-4">
-            {/* Wishlist Icon - Always Visible */}
+            {/* Wishlist Icon */}
             <button
               onClick={() => setIsWishlistOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
@@ -134,7 +246,7 @@ const Navbar: React.FC = () => {
               )}
             </button>
             
-            {/* Cart Icon - Always Visible */}
+            {/* Cart Icon */}
             <button
               onClick={() => setIsCartOpen(true)}
               className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
@@ -152,13 +264,14 @@ const Navbar: React.FC = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              aria-label="Menu"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation Menu */}
         {isOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-3 sm:px-3 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
@@ -202,6 +315,57 @@ const Navbar: React.FC = () => {
                   </>
                 )}
               </button>
+              
+              {/* User Authentication - Mobile */}
+              {isLoaded && (
+                <>
+                  {isAuthenticated && user ? (
+                    <>
+                      <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-700 my-2">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 flex items-center justify-center text-white font-semibold text-lg">
+                            {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                              {user.fullName || user.email}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+                      >
+                        <LogOut className="h-5 w-5 mr-2" />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                        <button
+                          onClick={() => openAuthModal('sign-in')}
+                          className="flex items-center justify-center w-full px-4 py-3 text-white bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 rounded-lg transition-all duration-200 mx-3 my-2 font-semibold shadow-md"
+                        >
+                          <LogIn className="h-5 w-5 mr-2" />
+                          Login
+                        </button>
+                        <button
+                          onClick={() => openAuthModal('sign-up')}
+                          className="flex items-center justify-center w-full px-4 py-3 text-gold-600 dark:text-gold-400 bg-white dark:bg-gray-800 border-2 border-gold-500 hover:bg-gold-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 mx-3 my-2 font-semibold"
+                        >
+                          <User className="h-5 w-5 mr-2" />
+                          Create Account
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -211,6 +375,15 @@ const Navbar: React.FC = () => {
     {/* Drawers */}
     <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+    
+    {/* Authentication Modal */}
+    <AuthModal 
+      isOpen={isAuthModalOpen} 
+      onClose={() => setIsAuthModalOpen(false)} 
+      mode={authMode}
+      redirectUrl={location.pathname}
+      onModeChange={setAuthMode}
+    />
     </>
   );
 };

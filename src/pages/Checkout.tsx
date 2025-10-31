@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Tag, X, CheckCircle, ShoppingBag, Sparkles, Gift, User, Mail, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProtectedContent from '../components/ProtectedContent';
 
 interface CustomerInfo {
   name: string;
@@ -44,6 +46,7 @@ const Checkout: React.FC = () => {
   const { state, dispatch } = useCart();
   const navigate = useNavigate();
   const { isOnline } = useStore();
+  const { isAuthenticated, user } = useAuth();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
     phone: '',
@@ -52,6 +55,17 @@ const Checkout: React.FC = () => {
     pincode: '',
     notes: '',
   });
+  
+  // Pre-fill customer info if user is logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setCustomerInfo(prev => ({
+        ...prev,
+        name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        email: user.email || prev.email,
+      }));
+    }
+  }, [isAuthenticated, user]);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [couponError, setCouponError] = useState('');
@@ -383,20 +397,21 @@ Thank you for choosing Elegance Jewelry! 💍
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <button
-            onClick={() => navigate('/cart')}
-            className="group flex items-center text-gray-600 dark:text-gray-300 hover:text-gold-600 dark:hover:text-gold-400 transition-colors mb-4"
+    <ProtectedContent message="Sign in to proceed with your order">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
           >
-            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-medium text-sm">Back to Cart</span>
+            <button
+              onClick={() => navigate('/cart')}
+              className="group flex items-center text-gray-600 dark:text-gray-300 hover:text-gold-600 dark:hover:text-gold-400 transition-colors mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-medium text-sm">Back to Cart</span>
           </button>
 
           <div className="flex items-center gap-2 mb-1">
@@ -862,7 +877,8 @@ Thank you for choosing Elegance Jewelry! 💍
           </motion.div>
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedContent>
   );
 };
 

@@ -12,13 +12,24 @@ import natural from 'natural';
 import { cosineSimilarity, getProductText, calculateWeightedSimilarity } from './utils/similarity.js';
 import couponRoutes from './routes/couponRoutes.js';
 import discountRoutes from './routes/discountRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
+import wishlistRoutes from './routes/wishlistRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import { calculateProductDiscount, calculateProductsDiscounts, calculateCartDiscount } from './utils/discountCalculator.js';
 import sseManager from './utils/sseManager.js';
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Configure dotenv to look for .env file in the root directory (one level up from backend/)
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+// Log environment variables for debugging (remove in production)
+console.log('🔧 Environment Variables Loaded:');
+console.log('   - MONGODB_URI:', process.env.MONGODB_URI ? '✅ Configured' : '❌ Missing');
+console.log('   - JWT_SECRET:', process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing');
+console.log('   - PORT:', process.env.PORT || '5001 (default)');
+console.log('   - NODE_ENV:', process.env.NODE_ENV || 'development (default)');
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -214,6 +225,11 @@ app.use('/api/coupons', couponRoutes);
 // Public GET requests for fetching discounts (for banner/display)
 // Protected POST/PUT/DELETE requests (for admin operations)
 app.use('/api/discounts', discountRoutes);
+
+// Mount User Cart, Wishlist, and Profile Routes
+app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/users', userRoutes);
 
 // Admin Authentication
 app.post('/api/admin/register', async (req, res) => {

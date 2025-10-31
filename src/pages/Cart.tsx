@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, Gift, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProtectedContent from '../components/ProtectedContent';
 
 interface DiscountInfo {
   hasDiscount: boolean;
@@ -164,19 +165,20 @@ const Cart: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7 text-gold-600 dark:text-gold-400" />
-            Shopping Cart
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+    <ProtectedContent message="Sign in to view your cart and continue shopping">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2">
+              <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7 text-gold-600 dark:text-gold-400" />
+              Shopping Cart
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
             {state.items.length} {state.items.length === 1 ? 'item' : 'items'} in your cart
           </p>
         </motion.div>
@@ -458,7 +460,8 @@ const Cart: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedContent>
   );
 };
 
