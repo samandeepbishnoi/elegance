@@ -122,69 +122,111 @@ const ShopByOccasion: React.FC = () => {
               >
                 {/* Background Image */}
                 <div className="relative h-64 sm:h-72 overflow-hidden">
-                  <motion.img
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.4 }}
+                  <img
                     src={occasion.image}
                     alt={occasion.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     loading="lazy"
                   />
                   
                   {/* Gradient Overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-t ${occasion.color} opacity-70 group-hover:opacity-80 transition-opacity`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-t ${occasion.color} opacity-70 group-hover:opacity-80 transition-opacity duration-300`}></div>
                 </div>
 
                 {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                  {/* Icon */}
-                  <motion.div
-                    initial={{ scale: 1 }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="mb-4"
-                  >
-                    <div className="inline-block p-3 bg-white/20 backdrop-blur-sm rounded-full">
-                      <IconComponent className="h-8 w-8" />
-                    </div>
-                  </motion.div>
-
-                  {/* Text */}
-                  <h3 className="text-2xl sm:text-3xl font-bold mb-2">
-                    {occasion.name}
-                  </h3>
-                  <p className="text-sm sm:text-base text-white/90 mb-4">
-                    {occasion.description}
-                  </p>
-
-                  {/* Shop Now Button */}
-                  <motion.button
-                    whileHover={{ x: 5 }}
-                    className="inline-flex items-center text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  >
-                    Shop Now
-                    <svg
-                      className="ml-2 h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <div className="absolute inset-0 text-white">
+                  {/* Icon - Top left on mobile, with content on desktop */}
+                  <div className="absolute top-4 left-4 sm:relative sm:top-auto sm:left-auto sm:flex sm:flex-col sm:justify-end sm:h-full sm:p-6">
+                    <motion.div
+                      animate={{ scale: 1 }}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      className="sm:mb-4"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </motion.button>
+                      <div className="inline-block p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-full">
+                        <IconComponent className="h-6 w-6 sm:h-8 sm:w-8" />
+                      </div>
+                    </motion.div>
 
-                  {/* Decorative Line */}
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: '80px' }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
-                    className="h-1 bg-white mt-4 rounded-full group-hover:w-full transition-all duration-300"
-                  ></motion.div>
+                    {/* Text Content - Bottom on mobile, follows icon on desktop */}
+                    <div className="hidden sm:block">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                        {occasion.name}
+                      </h3>
+                      <p className="text-sm md:text-base text-white/90 mb-4 line-clamp-2">
+                        {occasion.description}
+                      </p>
+
+                      {/* Shop Now Button - Hover on desktop */}
+                      <motion.button
+                        whileHover={{ x: 5 }}
+                        className="inline-flex items-center text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        Shop Now
+                        <svg
+                          className="ml-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </motion.button>
+
+                      {/* Decorative Line */}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: '80px' }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+                        className="h-1 bg-white mt-4 rounded-full group-hover:w-full transition-all duration-300"
+                      ></motion.div>
+                    </div>
+                  </div>
+
+                  {/* Mobile-only text content at bottom */}
+                  <div className="sm:hidden absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold mb-1">
+                      {occasion.name}
+                    </h3>
+                    <p className="text-xs text-white/90 mb-3 line-clamp-2">
+                      {occasion.description}
+                    </p>
+
+                    {/* Shop Now Button - Always visible on mobile */}
+                    <motion.button
+                      whileHover={{ x: 5 }}
+                      className="inline-flex items-center text-xs font-semibold transition-opacity duration-300"
+                    >
+                      Shop Now
+                      <svg
+                        className="ml-1 h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </motion.button>
+
+                    {/* Decorative Line */}
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '60px' }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+                      className="h-0.5 bg-white mt-2 rounded-full group-hover:w-full transition-all duration-300"
+                    ></motion.div>
+                  </div>
                 </div>
 
                 {/* Shimmer Effect */}

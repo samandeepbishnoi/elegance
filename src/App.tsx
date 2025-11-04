@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ChatAssistant from './components/ChatAssistant';
 import RealtimeIndicator from './components/RealtimeIndicator';
+import ScrollToTop from './components/ScrollToTop';
 import Landing from './pages/Landing';
 import Homepage from './pages/Homepage';
 import ProductDetail from './pages/ProductDetail';
@@ -32,6 +33,7 @@ function App() {
                 <CartProvider>
                   <WishlistProvider>
                     <Router>
+                      <ScrollToTop />
                       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
                         <Navbar />
                         <main>
