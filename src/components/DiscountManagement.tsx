@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Plus, Edit2, Trash2, X, Save, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { useDiscount } from '../context/DiscountContext';
 
@@ -170,16 +171,17 @@ const DiscountManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Discount Management
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Discount Management</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">Create and manage price discounts</p>
+        </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          className="bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors flex items-center justify-center w-full sm:w-auto"
         >
-          {showForm ? <X size={20} /> : <Plus size={20} />}
-          {showForm ? 'Cancel' : 'Create Discount'}
+          {showForm ? <X className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
+          {showForm ? 'Cancel' : 'New Discount'}
         </button>
       </div>
 
@@ -189,34 +191,47 @@ const DiscountManagement: React.FC = () => {
         </div>
       )}
 
-      {showForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-            {editingDiscount ? 'Edit Discount' : 'Create New Discount'}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Form Modal */}
+      {showForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {editingDiscount ? 'Edit Discount' : 'Create New Discount'}
+                </h2>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Discount Name *
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Discount Name
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  placeholder="Enter discount name"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Scope *
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Scope
                 </label>
                 <select
                   value={formData.scope}
                   onChange={(e) => setFormData({ ...formData, scope: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   required
                 >
                   <option value="global">Global (All Products)</option>
@@ -226,13 +241,13 @@ const DiscountManagement: React.FC = () => {
 
               {formData.scope === 'category' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Category *
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select Category</option>
@@ -244,13 +259,13 @@ const DiscountManagement: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Discount Type *
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Discount Type
                 </label>
                 <select
                   value={formData.discountType}
                   onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   required
                 >
                   <option value="percentage">Percentage (%)</option>
@@ -259,8 +274,8 @@ const DiscountManagement: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Discount Value *
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Discount Value
                 </label>
                 <input
                   type="number"
@@ -269,79 +284,85 @@ const DiscountManagement: React.FC = () => {
                   max={formData.discountType === 'percentage' ? '100' : undefined}
                   value={formData.discountValue}
                   onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  placeholder={formData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 500'}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Start Date (Optional)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Start Date
                 </label>
                 <input
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  End Date (Optional)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  End Date
                 </label>
                 <input
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  min={formData.startDate || new Date().toISOString().split('T')[0]}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description (Optional)
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                rows={4}
+                placeholder="Optional description for internal use"
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4"
+                className="h-5 w-5 text-gold-500 focus:ring-gold-500 border-gray-300 rounded"
               />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="isActive" className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Active
               </label>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Save size={18} />
-                {editingDiscount ? 'Update' : 'Create'}
-              </button>
+            <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 transition-colors flex items-center"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {editingDiscount ? 'Update' : 'Save'} Discount
+              </button>
             </div>
           </form>
-        </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {loading ? (

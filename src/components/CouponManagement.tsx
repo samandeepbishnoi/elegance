@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Plus, Edit2, Trash2, X, Save, Tag, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 
 interface Coupon {
@@ -221,19 +222,29 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
         </button>
       </div>
 
-      {/* Form */}
-      {showForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-            {editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}
-          </h3>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Form Modal */}
+      {showForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  {editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}
+                </h2>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coupon Code */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Coupon Code *
+                  Coupon Code
                 </label>
                 <input
                   type="text"
@@ -242,21 +253,21 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   value={formData.code}
                   onChange={handleInputChange}
                   placeholder="e.g., DIAMOND10"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase"
                 />
               </div>
 
               {/* Discount Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Discount Type *
+                  Discount Type
                 </label>
                 <select
                   name="discountType"
                   required
                   value={formData.discountType}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="percentage">Percentage (%)</option>
                   <option value="flat">Flat Amount (₹)</option>
@@ -278,7 +289,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   value={formData.discountValue}
                   onChange={handleInputChange}
                   placeholder={formData.discountType === 'percentage' ? '10' : '500'}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -295,7 +306,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   value={formData.minPurchase}
                   onChange={handleInputChange}
                   placeholder="0 (no minimum)"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -309,7 +320,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -324,7 +335,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   value={formData.expiryDate}
                   onChange={handleInputChange}
                   min={formData.startDate || new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -340,7 +351,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
                   value={formData.usageLimit}
                   onChange={handleInputChange}
                   placeholder="Unlimited"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -375,11 +386,11 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
               </label>
               <textarea
                 name="description"
-                rows={3}
+                rows={4}
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Optional description for internal use"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -399,25 +410,28 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
             </div>
 
             {/* Submit Button */}
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-gold-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gold-600 transition-colors flex items-center justify-center disabled:opacity-50"
-              >
-                <Save className="h-5 w-5 mr-2" />
-                {loading ? 'Saving...' : editingCoupon ? 'Update Coupon' : 'Create Coupon'}
-              </button>
+            <div className="flex justify-end space-x-4">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 transition-colors flex items-center disabled:opacity-50"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {loading ? 'Saving...' : editingCoupon ? 'Update' : 'Save'} Coupon
+              </button>
             </div>
           </form>
-        </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Coupons List */}
