@@ -54,6 +54,7 @@ const AdminDashboard: React.FC = () => {
   const [showAdminManagement, setShowAdminManagement] = useState(false);
   const [showCouponManagement, setShowCouponManagement] = useState(false);
   const [showDiscountManagement, setShowDiscountManagement] = useState(false);
+  const [showProductManagement, setShowProductManagement] = useState(false);
   const [isMainAdmin, setIsMainAdmin] = useState(false);
   const { isOnline, setStoreStatus } = useStore();
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -352,54 +353,54 @@ const AdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 gap-4">
-            <div>
-              <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Manage your jewelry collection</p>
+          <div className="flex items-center justify-between py-4 gap-4">
+            <div className="flex-shrink-0">
+              <h1 className="text-lg sm:text-2xl font-serif font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Manage your jewelry collection</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
               {isMainAdmin && (
                 <button
                   onClick={handleStoreStatusToggle}
                   disabled={updatingStatus}
-                  className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                     isOnline
                       ? 'bg-green-500 hover:bg-green-600 text-white'
                       : 'bg-red-500 hover:bg-red-600 text-white'
                   } ${updatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Power className="h-4 w-4 mr-2" />
-                  Store: {isOnline ? 'Online' : 'Offline'}
+                  <Power className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Store: </span>{isOnline ? 'Online' : 'Offline'}
                 </button>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                className="flex items-center text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm sm:text-base"
               >
-                <LogOut className="h-5 w-5 mr-2" />
-                Logout
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Products</h3>
-            <p className="text-3xl font-bold text-gold-600">{products.length}</p>
+        <div className="grid grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 md:p-6">
+            <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-gray-900 dark:text-white">Total Products</h3>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gold-600">{products.length}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">In Stock</h3>
-            <p className="text-3xl font-bold text-green-600">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 md:p-6">
+            <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-gray-900 dark:text-white">In Stock</h3>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">
               {products.filter(p => p.inStock).length}
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Out of Stock</h3>
-            <p className="text-3xl font-bold text-red-600">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 md:p-6">
+            <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-gray-900 dark:text-white">Out of Stock</h3>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-600">
               {products.filter(p => !p.inStock).length}
             </p>
           </div>
@@ -407,80 +408,102 @@ const AdminDashboard: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Add Product Card */}
-            <button
-              onClick={() => setShowForm(true)}
-              className="group relative bg-gradient-to-br from-gold-500 to-gold-600 dark:from-gold-600 dark:to-gold-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
-              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
-                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Package className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-1">Add Product</h3>
-                <p className="text-sm text-white/80">Create new listing</p>
-              </div>
-            </button>
-
-            {/* Manage Admins Card */}
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {/* Manage Admins Card (moved to be the first option) */}
             {isMainAdmin && (
               <button
-                onClick={() => setShowAdminManagement(!showAdminManagement)}
-                className="group relative bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+                onClick={() => {
+                  setShowAdminManagement(!showAdminManagement);
+                  setShowProductManagement(false);
+                  setShowCouponManagement(false);
+                  setShowDiscountManagement(false);
+                }}
+                className="group relative bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
                 {pendingAdmins.length > 0 && (
-                  <div className="absolute top-3 right-3 z-10">
-                    <span className="flex items-center justify-center bg-red-500 text-white w-7 h-7 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
+                    <span className="flex items-center justify-center bg-red-500 text-white w-5 h-5 sm:w-7 sm:h-7 rounded-full text-xs font-bold shadow-lg animate-pulse">
                       {pendingAdmins.length}
                     </span>
                   </div>
                 )}
-                <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
-                  <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-8 w-8" />
+                <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                  <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-1">
+                  <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
                     {showAdminManagement ? 'Hide Admins' : 'Manage Admins'}
                   </h3>
-                  <p className="text-sm text-white/80">Control access</p>
+                  <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Control access</p>
                 </div>
               </button>
             )}
 
-            {/* Manage Coupons Card */}
+            {/* Manage Products Card (changed from Add Product) */}
             <button
-              onClick={() => setShowCouponManagement(!showCouponManagement)}
-              className="group relative bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+              onClick={() => {
+                setShowProductManagement(!showProductManagement);
+                setShowAdminManagement(false);
+                setShowCouponManagement(false);
+                setShowDiscountManagement(false);
+              }}
+              className="group relative bg-gradient-to-br from-gold-500 to-gold-600 dark:from-gold-600 dark:to-gold-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
-              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
-                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Ticket className="h-8 w-8" />
+              <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">
+                <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
+                  {showProductManagement ? 'Hide Products' : 'Manage Products'}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">View & edit listings</p>
+              </div>
+            </button>
+
+            {/* Manage Coupons Card */}
+            <button
+              onClick={() => {
+                setShowCouponManagement(!showCouponManagement);
+                setShowAdminManagement(false);
+                setShowProductManagement(false);
+                setShowDiscountManagement(false);
+              }}
+              className="group relative bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+              <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Ticket className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
+                </div>
+                <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
                   {showCouponManagement ? 'Hide Coupons' : 'Manage Coupons'}
                 </h3>
-                <p className="text-sm text-white/80">Promo codes</p>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Promo codes</p>
               </div>
             </button>
 
             {/* Manage Discounts Card */}
             <button
-              onClick={() => setShowDiscountManagement(!showDiscountManagement)}
-              className="group relative bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+              onClick={() => {
+                setShowDiscountManagement(!showDiscountManagement);
+                setShowAdminManagement(false);
+                setShowProductManagement(false);
+                setShowCouponManagement(false);
+              }}
+              className="group relative bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
-              <div className="relative p-6 flex flex-col items-center justify-center min-h-[160px]">
-                <div className="bg-white/20 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Tag className="h-8 w-8" />
+              <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Tag className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">
+                <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
                   {showDiscountManagement ? 'Hide Discounts' : 'Manage Discounts'}
                 </h3>
-                <p className="text-sm text-white/80">Price reductions</p>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Price reductions</p>
               </div>
             </button>
           </div>
@@ -489,15 +512,15 @@ const AdminDashboard: React.FC = () => {
         {/* Product Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full my-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                     {editingProduct ? 'Edit Product' : 'Add New Product'}
                   </h2>
                   <button
                     onClick={resetForm}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -506,7 +529,7 @@ const AdminDashboard: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Product Name
                       </label>
                       <input
@@ -515,13 +538,13 @@ const AdminDashboard: React.FC = () => {
                         required
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                         placeholder="Enter product name"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Price (₹)
                       </label>
                       <input
@@ -530,14 +553,14 @@ const AdminDashboard: React.FC = () => {
                         required
                         value={formData.price}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                         placeholder="Enter price"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Image URL
                     </label>
                     <input
@@ -546,14 +569,14 @@ const AdminDashboard: React.FC = () => {
                       required
                       value={formData.image}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                       placeholder="Enter image URL"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Category
                       </label>
                       <select
@@ -561,7 +584,7 @@ const AdminDashboard: React.FC = () => {
                         required
                         value={formData.category}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                       >
                         <option value="">Select category</option>
                         <option value="rings">Rings</option>
@@ -573,7 +596,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Tags (comma-separated)
                       </label>
                       <input
@@ -581,14 +604,14 @@ const AdminDashboard: React.FC = () => {
                         name="tags"
                         value={formData.tags}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                         placeholder="diamond, gold, bridal"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Description
                     </label>
                     <textarea
@@ -597,7 +620,7 @@ const AdminDashboard: React.FC = () => {
                       rows={4}
                       value={formData.description}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                       placeholder="Enter product description"
                     />
                   </div>
@@ -610,24 +633,24 @@ const AdminDashboard: React.FC = () => {
                       onChange={handleInputChange}
                       className="mr-2 text-gold-500 focus:ring-gold-500"
                     />
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       In Stock
                     </label>
                   </div>
 
                   {/* Product-Specific Discount Fields */}
-                  <div className="border-t pt-4">
-                    <h4 className="text-md font-semibold text-gray-700 mb-3">Product-Specific Discount (Optional)</h4>
+                  <div className="border-t dark:border-gray-600 pt-4">
+                    <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3">Product-Specific Discount (Optional)</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Discount Type
                         </label>
                         <select
                           name="discountType"
                           value={formData.discountType}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                         >
                           <option value="none">No Discount</option>
                           <option value="percentage">Percentage (%)</option>
@@ -637,7 +660,7 @@ const AdminDashboard: React.FC = () => {
 
                       {formData.discountType !== 'none' && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Discount Value
                           </label>
                           <input
@@ -648,7 +671,7 @@ const AdminDashboard: React.FC = () => {
                             max={formData.discountType === 'percentage' ? '100' : undefined}
                             value={formData.discountValue}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                             placeholder={formData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 500'}
                           />
                         </div>
@@ -660,7 +683,7 @@ const AdminDashboard: React.FC = () => {
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Cancel
                     </button>
@@ -857,11 +880,28 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
-      {/* Products Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+        {/* Product Management Section */}
+        {showProductManagement && (
+          <div className="mb-8">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  Product Management
+                </h2>
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700 transition-colors"
+                >
+                  {showForm ? <X size={20} /> : <Plus size={20} />}
+                  {showForm ? 'Cancel' : 'Add Product'}
+                </button>
+              </div>
+
+              {/* Products Table */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <h2 className="text-xl font-semibold text-gray-900">All Products</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Products</h2>
 
               <div className="flex flex-col sm:flex-row gap-3 flex-1 lg:max-w-2xl">
                 <input
@@ -869,13 +909,13 @@ const AdminDashboard: React.FC = () => {
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm"
                 />
 
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
                 >
                   <option value="all">All Categories</option>
                   {allCategories.map((cat) => (
@@ -888,7 +928,7 @@ const AdminDashboard: React.FC = () => {
                 <select
                   value={filterDiscount}
                   onChange={(e) => setFilterDiscount(e.target.value as 'all' | 'discounted' | 'no-discount')}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
                 >
                   <option value="all">All Products</option>
                   <option value="discounted">Discounted</option>
@@ -898,7 +938,7 @@ const AdminDashboard: React.FC = () => {
                 <select
                   value={sortByDate}
                   onChange={(e) => setSortByDate(e.target.value as 'newest' | 'oldest')}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent text-sm min-w-[140px]"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
@@ -906,33 +946,33 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-3 text-sm text-gray-600">
+            <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
               Showing {filteredProducts.length} of {products.length} products
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Product
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Category
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Price
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredProducts.map((product) => (
                   <tr key={product._id}>
                     <td className="px-3 sm:px-6 py-4">
@@ -944,7 +984,7 @@ const AdminDashboard: React.FC = () => {
                         />
                         <div className="ml-3 sm:ml-4 min-w-0">
                           <div className="flex items-center gap-2">
-                            <div className="text-sm font-medium text-gray-900 truncate">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                               {product.name}
                             </div>
                             {(() => {
@@ -959,25 +999,25 @@ const AdminDashboard: React.FC = () => {
                               return null;
                             })()}
                           </div>
-                          <div className="text-sm text-gray-500 truncate">
+                          <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             {product.tags.slice(0, 2).join(', ')}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <span className="capitalize text-sm text-gray-900">
+                      <span className="capitalize text-sm text-gray-900 dark:text-white">
                         {product.category}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       ₹{product.price.toLocaleString()}
                     </td>
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         product.inStock
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       }`}>
                         {product.inStock ? 'In Stock' : 'Out of Stock'}
                       </span>
@@ -1006,6 +1046,9 @@ const AdminDashboard: React.FC = () => {
             </table>
           </div>
         </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
