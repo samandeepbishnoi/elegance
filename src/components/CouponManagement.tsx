@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Plus, Edit2, Trash2, X, Save, Tag, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Coupon {
   _id: string;
@@ -138,15 +139,24 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
       });
 
       if (res.ok) {
-        alert(editingCoupon ? 'Coupon updated successfully!' : 'Coupon created successfully!');
+        toast.success(editingCoupon ? 'Coupon updated successfully!' : 'Coupon created successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
         fetchCoupons();
         resetForm();
       } else {
         const error = await res.json();
-        alert(error.message || 'Failed to save coupon');
+        toast.error(error.message || 'Failed to save coupon', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     } catch (error: any) {
-      alert('Error: ' + error.message);
+      toast.error(error.message || 'Failed to save coupon', {
+        duration: 4000,
+        position: 'top-center',
+      });
     } finally {
       setLoading(false);
     }
@@ -183,13 +193,22 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ token, backendUrl }
       });
 
       if (res.ok) {
-        alert('Coupon deleted successfully!');
+        toast.success('Coupon deleted successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
         fetchCoupons();
       } else {
-        alert('Failed to delete coupon');
+        toast.error('Failed to delete coupon', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     } catch (error: any) {
-      alert('Error: ' + error.message);
+      toast.error(error.message || 'Failed to delete coupon', {
+        duration: 4000,
+        position: 'top-center',
+      });
     } finally {
       setLoading(false);
     }

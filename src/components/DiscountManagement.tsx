@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Plus, Edit2, Trash2, X, Save, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { useDiscount } from '../context/DiscountContext';
+import toast from 'react-hot-toast';
 
 const DiscountManagement: React.FC = () => {
   const {
@@ -86,15 +87,24 @@ const DiscountManagement: React.FC = () => {
 
       if (editingDiscount) {
         await updateDiscount(editingDiscount._id, discountData);
-        alert('Discount updated successfully!');
+        toast.success('Discount updated successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
       } else {
         await createDiscount(discountData);
-        alert('Discount created successfully!');
+        toast.success('Discount created successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
       }
 
       resetForm();
     } catch (err: any) {
-      alert(err.message || 'Error saving discount');
+      toast.error(err.message || 'Failed to save discount', {
+        duration: 4000,
+        position: 'top-center',
+      });
     }
   };
 
@@ -119,9 +129,15 @@ const DiscountManagement: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this discount?')) {
       try {
         await deleteDiscount(id);
-        alert('Discount deleted successfully!');
+        toast.success('Discount deleted successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
       } catch (err: any) {
-        alert(err.message || 'Error deleting discount');
+        toast.error(err.message || 'Failed to delete discount', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     }
   };

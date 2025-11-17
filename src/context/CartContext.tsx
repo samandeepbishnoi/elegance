@@ -108,13 +108,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch (error) {
             console.error('Error loading cart from backend:', error);
             
-            // Fallback to localStorage
+            // Fallback to localStorage - Only show toast if there's actual data to notify about
             const guestCart = getGuestCart();
             if (guestCart.length > 0) {
               dispatch({ type: 'LOAD_CART', payload: guestCart });
-              toast.error('Could not sync cart. Using local data.', {
-                id: 'cart-sync-error', // Prevents duplicate toasts
-              });
+              // Only show error toast if network issue persists - IMPROVED UX
+              if (!isOnline()) {
+                toast.error('Using offline cart data', {
+                  id: 'cart-sync-error',
+                });
+              }
+            } else {
+              dispatch({ type: 'LOAD_CART', payload: [] });
             }
           }
         } else {

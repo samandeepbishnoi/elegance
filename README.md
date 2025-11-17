@@ -284,14 +284,31 @@ jewelry-catalog-website/
    
    # WhatsApp Business Number (without + prefix)
    VITE_WHATSAPP_NUMBER=919896076856
+   
+   # Razorpay Payment Gateway (TEST KEYS)
+   RAZORPAY_KEY_ID=rzp_test_RfvBnbFBX13kuB
+   RAZORPAY_KEY_SECRET=kVcTXkNWPvSKunqMsyJu0Sda
    ```
 
-3. **Database Setup**
+3. **Install Razorpay Integration Packages**
+   ```bash
+   # Make the script executable
+   chmod +x install-razorpay.sh
+   
+   # Run the installation script
+   ./install-razorpay.sh
+   
+   # OR install manually:
+   npm install razorpay canvas-confetti
+   npm install --save-dev @types/canvas-confetti
+   ```
+
+4. **Database Setup**
    - Ensure MongoDB is running
    - The application will automatically create the database and collections
    - A default main admin user will be created on first run
 
-4. **Start the Application**
+5. **Start the Application**
    
    **Development Mode (Frontend + Backend)**:
    ```bash
@@ -372,9 +389,106 @@ Create custom coupon codes with flexible rules:
 - **Analytics**: Track usage and effectiveness of promotions
 - **Bulk Operations**: Manage multiple campaigns efficiently
 
+## � Razorpay Payment Integration
+
+Complete payment gateway integration with Razorpay for secure online payments.
+
+### Payment Features
+- **🔒 Secure Payments**: Industry-standard encryption and security
+- **💳 Multiple Payment Options**: Credit/Debit cards, UPI, Net Banking, Wallets
+- **�📱 Mobile Optimized**: Seamless checkout on all devices
+- **⚡ Instant Confirmation**: Immediate order confirmation after payment
+- **🔄 Auto Refunds**: Automatic refund processing for cancellations
+- **📊 Payment Analytics**: Track revenue, successful/failed payments
+- **🎯 Smart Routing**: Dual payment options (Razorpay + WhatsApp)
+
+### Customer Experience
+1. **Checkout Flow**: Select payment method (Razorpay or WhatsApp)
+2. **Payment Options**: Choose from cards, UPI, net banking, wallets
+3. **Instant Verification**: Secure signature verification
+4. **Success Page**: Animated confetti celebration with order details
+5. **Order Tracking**: View all orders in "My Orders" section
+6. **Cancel & Refund**: Cancel orders within 24 hours with automatic refund
+
+### Order Management
+- **Order History**: Complete list with filters (paid, pending, cancelled, refunded)
+- **Order Details**: Comprehensive view with payment info and delivery address
+- **Order Cancellation**: 24-hour cancellation window with instant refund
+- **Order Status**: Real-time tracking (Confirmed → Processing → Shipped → Delivered)
+- **WhatsApp Support**: One-click contact for order queries
+
+### Admin Features
+- **Order Dashboard**: View all orders with advanced filters
+- **Payment Analytics**: Revenue tracking, success/failure rates
+- **Status Management**: Update order status (processing, shipped, delivered)
+- **Refund Processing**: Manual refund initiation for special cases
+- **Order Search**: Search by order number, customer name, email
+
+### Test Payment Credentials
+```env
+RAZORPAY_KEY_ID=rzp_test_RfvBnbFBX13kuB
+RAZORPAY_KEY_SECRET=kVcTXkNWPvSKunqMsyJu0Sda
+```
+
+### Test Card Details (Indian Cards Only)
+
+⚠️ **IMPORTANT LIMITATIONS**:
+- Razorpay test mode requires **INDIAN test cards only**
+- **Maximum transaction limit: ₹5,000** in test mode
+- Keep cart total under ₹5,000 or payment will fail
+
+**Successful Payment (Indian Mastercard):**
+```
+Card Number: 5267 3181 8797 5449
+Expiry: Any future date (e.g., 12/25)
+CVV: Any 3 digits (e.g., 123)
+Name: Any name
+Network: Mastercard (India)
+Max Amount: ₹5,000
+```
+
+**Alternative (Indian RuPay):**
+```
+Card Number: 6073 7497 8244 2020
+Expiry: 05/26
+CVV: 999
+Max Amount: ₹5,000
+```
+
+**Note**: For testing with amounts over ₹5,000, you'll need to switch to production mode with live API keys.
+
+### API Endpoints
+
+**Customer Endpoints:**
+- `POST /api/payment/create-order` - Create Razorpay order
+- `POST /api/payment/verify` - Verify payment signature
+- `GET /api/payment/orders?email=` - Get customer orders
+- `GET /api/payment/orders/:id` - Get order details
+- `POST /api/payment/orders/:id/cancel` - Cancel order (auto-refund)
+
+**Admin Endpoints (Protected):**
+- `GET /api/payment/admin/orders` - Get all orders with filters
+- `GET /api/payment/admin/statistics` - Get payment analytics
+- `PUT /api/payment/admin/orders/:id/status` - Update order status
+- `POST /api/payment/admin/orders/:id/refund` - Process manual refund
+
+### Integration Benefits
+- ✅ **Automatic Inventory Management**: Stock reduced on successful payment
+- ✅ **Coupon Integration**: Automatic coupon usage tracking
+- ✅ **Discount System**: Product and coupon discounts applied correctly
+- ✅ **Email Notifications**: Order confirmation emails (future enhancement)
+- ✅ **Order Analytics**: Complete revenue and sales tracking
+- ✅ **WhatsApp Notifications**: Send order confirmations via WhatsApp
+
 ## �📱 WhatsApp Integration
 
-The checkout system redirects customers to WhatsApp with formatted order details. Configuration:
+The checkout system offers both Razorpay online payment and WhatsApp checkout options.
+
+### Dual Payment Options
+- **Razorpay (Recommended)**: Instant payment with immediate confirmation
+- **WhatsApp Order**: Traditional order placement via WhatsApp Business
+
+### WhatsApp Configuration
 
 1. **Update WhatsApp Number**: Set `VITE_WHATSAPP_NUMBER` in `.env` file
 2. **Number Format**: Use international format without + (e.g., 919896076856)

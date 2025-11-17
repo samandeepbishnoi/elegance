@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, Crown, Moon, Sun, Lock, LogOut, User, Menu, X, LogIn } from 'lucide-react';
+import { ShoppingBag, Heart, Crown, Moon, Sun, Lock, LogOut, User, Menu, X, LogIn, Package, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -96,16 +96,10 @@ const Navbar: React.FC = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8 flex-shrink-0">
             <Link
-              to="/"
-              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-300 group"
-            >
-              Home
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gold-500 to-gold-600 group-hover:w-full transition-all duration-300"></span>
-            </Link>
-            <Link
               to="/catalog"
-              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-300 group"
+              className="relative text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-300 group flex items-center gap-1.5"
             >
+              <Sparkles className="h-4 w-4" />
               Catalog
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gold-500 to-gold-600 group-hover:w-full transition-all duration-300"></span>
             </Link>
@@ -144,18 +138,6 @@ const Navbar: React.FC = () => {
               )}
             </motion.button>
             
-            {/* Dark Mode Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.1, rotate: 180 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              onClick={toggleDarkMode}
-              className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-            </motion.button>
-
             {/* User Authentication */}
             {isLoaded && (
               <>
@@ -204,9 +186,42 @@ const Navbar: React.FC = () => {
                               </div>
                             </div>
                           </div>
+                          
+                          {/* Orders Link */}
+                          <Link
+                            to="/orders"
+                            onClick={() => setShowUserMenu(false)}
+                            className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                          >
+                            <Package className="h-4 w-4" />
+                            <span>My Orders</span>
+                          </Link>
+                          
+                          {/* Dark Mode Toggle */}
+                          <button
+                            onClick={() => {
+                              toggleDarkMode();
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                          >
+                            {isDarkMode ? (
+                              <>
+                                <Sun className="h-4 w-4" />
+                                <span>Light Mode</span>
+                              </>
+                            ) : (
+                              <>
+                                <Moon className="h-4 w-4" />
+                                <span>Dark Mode</span>
+                              </>
+                            )}
+                          </button>
+                          
+                          {/* Sign Out */}
                           <button
                             onClick={handleSignOut}
-                            className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                            className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2 border-t border-gray-200 dark:border-gray-700"
                           >
                             <LogOut className="h-4 w-4" />
                             <span>Sign Out</span>
@@ -281,19 +296,24 @@ const Navbar: React.FC = () => {
               </div>
 
               <Link
-                to="/"
-                className="block px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
-                onClick={() => setIsOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
                 to="/catalog"
-                className="block px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+                className="block px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200 flex items-center gap-2"
                 onClick={() => setIsOpen(false)}
               >
+                <Sparkles className="h-5 w-5" />
                 Catalog
               </Link>
+              
+              {isAuthenticated && (
+                <Link
+                  to="/orders"
+                  className="block px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200 flex items-center gap-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Package className="h-5 w-5" />
+                  My Orders
+                </Link>
+              )}
               
               {/* Dark Mode Toggle */}
               <button

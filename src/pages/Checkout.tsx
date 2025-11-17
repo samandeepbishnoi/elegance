@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Tag, X, CheckCircle, ShoppingBag, Sparkles, Gift, User, Mail, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
+import { ArrowLeft, Tag, X, CheckCircle, ShoppingBag, Sparkles, Gift, User, Mail, Phone, MapPin, FileText, CreditCard, Banknote } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProtectedContent from '../components/ProtectedContent';
+import AddressSelector from '../components/AddressSelector';
+import toast from 'react-hot-toast';
+
+interface SavedAddress {
+  _id: string;
+  addressType: 'home' | 'work' | 'other';
+  fullName: string;
+  phone: string;
+  flatNumber?: string;
+  street: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+}
 
 interface CustomerInfo {
   name: string;
@@ -47,6 +63,10 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { isOnline } = useStore();
   const { isAuthenticated, user } = useAuth();
+  
+  // Selected saved address
+  const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null);
+  
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
     phone: '',
@@ -56,16 +76,37 @@ const Checkout: React.FC = () => {
     notes: '',
   });
   
+  // Update customerInfo when address is selected
+  useEffect(() => {
+    if (selectedAddress) {
+      const fullAddress = [
+        selectedAddress.flatNumber,
+        selectedAddress.street,
+        selectedAddress.landmark,
+        selectedAddress.city,
+        selectedAddress.state
+      ].filter(Boolean).join(', ');
+      
+      setCustomerInfo(prev => ({
+        ...prev,
+        name: selectedAddress.fullName,
+        phone: selectedAddress.phone,
+        address: fullAddress,
+        pincode: selectedAddress.pincode
+      }));
+    }
+  }, [selectedAddress]);
+  
   // Pre-fill customer info if user is logged in
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !selectedAddress) {
       setCustomerInfo(prev => ({
         ...prev,
         name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         email: user.email || prev.email,
       }));
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, selectedAddress]);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [couponError, setCouponError] = useState('');
@@ -78,8 +119,44 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [productDiscountTotal, setProductDiscountTotal] = useState(0);
   const [subtotalAfterProductDiscounts, setSubtotalAfterProductDiscounts] = useState(0);
+  
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
+  const [processingPayment, setProcessingPayment] = useState(false);
+  
+  // Store settings state
+  const [storeSettings, setStoreSettings] = useState({
+    codEnabled: true,
+    razorpayEnabled: true,
+    codMinimumOrder: 0,
+    codMaximumOrder: 100000,
+    codExtraCharge: 0
+  });
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+
+  // Fetch store settings
+  useEffect(() => {
+    const fetchStoreSettings = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/settings`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.settings) {
+            setStoreSettings(data.settings);
+            // Set default payment method based on available options
+            if (!data.settings.razorpayEnabled && data.settings.codEnabled) {
+              setPaymentMethod('cod');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching store settings:', error);
+      }
+    };
+
+    fetchStoreSettings();
+  }, [backendUrl]);
 
   // Fetch product discount information
   useEffect(() => {
@@ -261,87 +338,315 @@ const Checkout: React.FC = () => {
     return total;
   };
 
+  // Handle Razorpay Payment
+  const handleRazorpayPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isOnline) {
+      toast.error('Store is currently offline. Please try again later.', {
+        duration: 4000,
+        position: 'top-center',
+      });
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    try {
+      const finalTotal = calculateFinalTotal();
+
+      // Create Razorpay order
+      const orderResponse = await fetch(`${backendUrl}/api/payment/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerName: customerInfo.name,
+          customerEmail: customerInfo.email,
+          customerPhone: customerInfo.phone,
+          address: customerInfo.address,
+          pincode: customerInfo.pincode,
+          notes: customerInfo.notes,
+          // Include structured address if available
+          structuredAddress: selectedAddress ? {
+            addressType: selectedAddress.addressType,
+            flatNumber: selectedAddress.flatNumber,
+            street: selectedAddress.street,
+            landmark: selectedAddress.landmark,
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+          } : null,
+          items: productsWithDiscounts.map(item => ({
+            productId: item._id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            category: item.category,
+            productDiscount: item.discountInfo?.discountAmount || 0,
+            finalPrice: item.discountInfo?.finalPrice || item.price
+          })),
+          subtotal: state.total,
+          productDiscount: productDiscountTotal,
+          couponCode: appliedCoupon?.code || '',
+          couponDiscount: appliedCoupon?.discountAmount || 0,
+          finalAmount: finalTotal
+        }),
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (!orderData.success) {
+        throw new Error(orderData.message || 'Failed to create order');
+      }
+
+      // Load Razorpay script
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        const options = {
+          key: orderData.order.razorpayKeyId,
+          amount: orderData.order.amount * 100,
+          currency: orderData.order.currency,
+          name: 'Elegance Jewelry',
+          description: 'Luxury Jewelry Order',
+          order_id: orderData.order.razorpayOrderId,
+          theme: {
+            color: '#D4AF37' // Gold theme
+          },
+          prefill: {
+            name: customerInfo.name,
+            email: customerInfo.email,
+            contact: customerInfo.phone
+          },
+          handler: async function (response: any) {
+            // Verify payment
+            try {
+              const verifyResponse = await fetch(`${backendUrl}/api/payment/verify`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  orderId: orderData.order.orderId
+                }),
+              });
+
+              const verifyData = await verifyResponse.json();
+
+              if (verifyData.success) {
+                // Clear cart
+                dispatch({ type: 'CLEAR_CART' });
+                
+                // Navigate to success page with order details
+                navigate('/payment-success', {
+                  state: {
+                    orderId: verifyData.order.orderId,
+                    orderNumber: verifyData.order.orderNumber,
+                    amount: verifyData.order.finalAmount,
+                    paymentId: response.razorpay_payment_id
+                  }
+                });
+              } else {
+                // Update order status to failed on backend
+                try {
+                  await fetch(`${backendUrl}/api/payment/orders/${orderData.order.orderId}/payment-failed`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                } catch (err) {
+                  console.error('Failed to update payment status:', err);
+                }
+                toast.error('Payment verification failed. Please contact support.', {
+                  duration: 5000,
+                  position: 'top-center',
+                });
+              }
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              // Update order status to failed on backend
+              try {
+                await fetch(`${backendUrl}/api/payment/orders/${orderData.order.orderId}/payment-failed`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              } catch (err) {
+                console.error('Failed to update payment status:', err);
+              }
+              toast.error('Payment verification failed. Please contact support with your payment ID: ' + response.razorpay_payment_id, {
+                duration: 6000,
+                position: 'top-center',
+              });
+            } finally {
+              setProcessingPayment(false);
+            }
+          },
+          modal: {
+            ondismiss: async function() {
+              // Mark payment as cancelled/failed when user closes modal
+              try {
+                await fetch(`${backendUrl}/api/payment/orders/${orderData.order.orderId}/payment-failed`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              } catch (err) {
+                console.error('Failed to update payment status:', err);
+              }
+              setProcessingPayment(false);
+              toast('Payment cancelled. Your cart has been saved.', {
+                duration: 4000,
+                position: 'top-center',
+                icon: 'ℹ️',
+              });
+            }
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      };
+
+      script.onerror = () => {
+        setProcessingPayment(false);
+        toast.error('Failed to load payment gateway. Please try again.', {
+          duration: 4000,
+          position: 'top-center',
+        });
+      };
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Failed to initiate payment. Please try again.', {
+        duration: 4000,
+        position: 'top-center',
+      });
+      setProcessingPayment(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isOnline) {
-      alert('Store is currently offline. Please try again later.');
+      toast.error('Store is currently offline. Please try again later.', {
+        duration: 4000,
+        position: 'top-center',
+      });
       return;
     }
 
-    // Confirm coupon usage if a coupon was applied
-    if (appliedCoupon) {
-      try {
-        await fetch(`${backendUrl}/api/coupons/confirm-usage`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            code: appliedCoupon.code
-          }),
-        });
-      } catch (error) {
-        console.error('Error confirming coupon usage:', error);
-        // Continue with order even if coupon confirmation fails
-      }
+    // Validate COD order amount
+    const finalTotal = calculateFinalTotal() + storeSettings.codExtraCharge;
+    if (finalTotal < storeSettings.codMinimumOrder) {
+      toast.error(`Minimum order amount for COD is ₹${storeSettings.codMinimumOrder.toLocaleString()}`, {
+        duration: 4000,
+        position: 'top-center',
+      });
+      return;
+    }
+    if (finalTotal > storeSettings.codMaximumOrder) {
+      toast.error(`Maximum order amount for COD is ₹${storeSettings.codMaximumOrder.toLocaleString()}. Please use online payment.`, {
+        duration: 5000,
+        position: 'top-center',
+      });
+      return;
     }
 
-    // Create WhatsApp message
-    const orderDetails = productsWithDiscounts.map(item => {
-      const itemDiscountInfo = item.discountInfo;
-      const hasDiscount = itemDiscountInfo?.hasDiscount;
-      const pricePerUnit = hasDiscount ? itemDiscountInfo.finalPrice : item.price;
-      const itemTotal = pricePerUnit * item.quantity;
-      
-      if (hasDiscount) {
-        return `${item.name} (Qty: ${item.quantity}) - ₹${itemTotal.toLocaleString()} (${itemDiscountInfo.discountLabel} applied)`;
-      } else {
-        return `${item.name} (Qty: ${item.quantity}) - ₹${itemTotal.toLocaleString()}`;
+    setProcessingPayment(true);
+
+    try {
+      // Confirm coupon usage if a coupon was applied
+      if (appliedCoupon) {
+        try {
+          await fetch(`${backendUrl}/api/coupons/confirm-usage`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code: appliedCoupon.code
+            }),
+          });
+        } catch (error) {
+          console.error('Error confirming coupon usage:', error);
+        }
       }
-    }).join('\n');
-    
-    const finalTotal = calculateFinalTotal();
-    const productDiscountInfo = productDiscountTotal > 0
-      ? `\n🎁 *Product Discounts:* -₹${productDiscountTotal.toLocaleString()}\n`
-      : '';
-    const couponInfo = appliedCoupon 
-      ? `💎 *Coupon Applied:* ${appliedCoupon.code}\n💰 *Coupon Discount:* -₹${appliedCoupon.discountAmount.toLocaleString()}\n`
-      : '';
-    
-    const message = `
-🌟 *NEW JEWELRY ORDER*
 
-📦 *Order Details:*
-${orderDetails}
+      // Create COD order
+      const orderResponse = await fetch(`${backendUrl}/api/payment/create-cod-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerName: customerInfo.name,
+          customerEmail: customerInfo.email,
+          customerPhone: customerInfo.phone,
+          address: customerInfo.address,
+          pincode: customerInfo.pincode,
+          notes: customerInfo.notes,
+          // Include structured address if available
+          structuredAddress: selectedAddress ? {
+            addressType: selectedAddress.addressType,
+            flatNumber: selectedAddress.flatNumber,
+            street: selectedAddress.street,
+            landmark: selectedAddress.landmark,
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+          } : null,
+          items: productsWithDiscounts.map(item => ({
+            productId: item._id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            category: item.category,
+            productDiscount: item.discountInfo?.discountAmount || 0,
+            finalPrice: item.discountInfo?.finalPrice || item.price
+          })),
+          subtotal: state.total,
+          productDiscount: productDiscountTotal,
+          couponCode: appliedCoupon?.code || '',
+          couponDiscount: appliedCoupon?.discountAmount || 0,
+          codCharge: storeSettings.codExtraCharge,
+          finalAmount: finalTotal
+        }),
+      });
 
-💵 *Subtotal:* ₹${state.total.toLocaleString()}${productDiscountInfo}${couponInfo}
-✨ *Final Total: ₹${finalTotal.toLocaleString()}*
+      const orderData = await orderResponse.json();
 
-👤 *Customer Information:*
-Name: ${customerInfo.name}
-Phone: ${customerInfo.phone}
-Email: ${customerInfo.email}
-Address: ${customerInfo.address}
-Pin Code: ${customerInfo.pincode}
-${customerInfo.notes ? `Notes: ${customerInfo.notes}` : ''}
-
-Thank you for choosing Elegance Jewelry! 💍
-    `.trim();
-
-    // WhatsApp business number from environment variable
-    const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '919896076856';
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank');
-    
-    // Clear cart and coupon after successful order
-    dispatch({ type: 'CLEAR_CART' });
-    setAppliedCoupon(null);
-    
-    // Navigate to success page or home
-    navigate('/');
+      if (orderData.success) {
+        // Clear cart
+        dispatch({ type: 'CLEAR_CART' });
+        
+        // Navigate to success page with order details
+        navigate('/payment-success', {
+          state: {
+            orderId: orderData.order._id,
+            orderNumber: orderData.order.orderNumber,
+            amount: orderData.order.finalAmount,
+            paymentMethod: 'cod'
+          }
+        });
+      } else {
+        throw new Error(orderData.message || 'Failed to create COD order');
+      }
+    } catch (error: any) {
+      console.error('COD order error:', error);
+      toast.error('Failed to place order. Please try again.', {
+        duration: 4000,
+        position: 'top-center',
+      });
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   if (state.items.length === 0) {
@@ -493,41 +798,59 @@ Thank you for choosing Elegance Jewelry! 💍
                   />
                 </div>
 
-                {/* Address */}
-                <div className="group">
-                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
-                    Address *
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    required
-                    value={customerInfo.address}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    placeholder="Enter your complete address"
-                  />
-                </div>
+                {/* Advanced Address Selector */}
+                {isAuthenticated ? (
+                  <div className="group">
+                    <AddressSelector
+                      selectedAddress={selectedAddress}
+                      onSelectAddress={(address) => setSelectedAddress(address)}
+                      onAddressAdded={() => {
+                        // Optionally refresh or handle new address added
+                      }}
+                      customerName={customerInfo.name}
+                      customerPhone={customerInfo.phone}
+                      userId={user?.id}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {/* Manual Address Input for Guest Users */}
+                    <div className="group">
+                      <label htmlFor="address" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                        Address *
+                      </label>
+                      <input
+                        type="text"
+                        id="address"
+                        name="address"
+                        required
+                        value={customerInfo.address}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Enter your complete address"
+                      />
+                    </div>
 
-                {/* Pin Code */}
-                <div className="group">
-                  <label htmlFor="pincode" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
-                    Pin Code *
-                  </label>
-                  <input
-                    type="text"
-                    id="pincode"
-                    name="pincode"
-                    required
-                    value={customerInfo.pincode}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    placeholder="Enter your pin code"
-                  />
-                </div>
+                    {/* Pin Code */}
+                    <div className="group">
+                      <label htmlFor="pincode" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                        Pin Code *
+                      </label>
+                      <input
+                        type="text"
+                        id="pincode"
+                        name="pincode"
+                        required
+                        value={customerInfo.pincode}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                        placeholder="Enter your pin code"
+                      />
+                    </div>
+                  </>
+                )}
 
                 {/* Special Notes */}
                 <div className="group">
@@ -546,27 +869,179 @@ Thank you for choosing Elegance Jewelry! 💍
                   />
                 </div>
 
+                {/* Payment Method Selection */}
+                <div className="border-t-2 border-gray-100 dark:border-gray-700 pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CreditCard className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Payment Method</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Razorpay Option */}
+                    <motion.button
+                      type="button"
+                      onClick={() => setPaymentMethod('razorpay')}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        paymentMethod === 'razorpay'
+                          ? 'border-gold-500 bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20 shadow-lg'
+                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gold-300 dark:hover:border-gold-600'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          paymentMethod === 'razorpay'
+                            ? 'bg-gold-100 dark:bg-gold-900/30'
+                            : 'bg-gray-100 dark:bg-gray-600'
+                        }`}>
+                          <CreditCard className={`h-5 w-5 ${
+                            paymentMethod === 'razorpay'
+                              ? 'text-gold-600 dark:text-gold-400'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className={`font-bold text-sm ${
+                              paymentMethod === 'razorpay'
+                                ? 'text-gold-900 dark:text-gold-100'
+                                : 'text-gray-900 dark:text-gray-100'
+                            }`}>
+                              Pay Online
+                            </h4>
+                            {paymentMethod === 'razorpay' && (
+                              <CheckCircle className="h-5 w-5 text-gold-600 dark:text-gold-400" />
+                            )}
+                          </div>
+                          <p className={`text-xs leading-relaxed ${
+                            paymentMethod === 'razorpay'
+                              ? 'text-gold-700 dark:text-gold-300'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`}>
+                            Instant confirmation with secure payment
+                          </p>
+                          <div className="mt-2 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-green-600 dark:text-green-400" />
+                            <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                              Recommended
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.button>
+
+                    {/* Cash on Delivery Option */}
+                    {storeSettings.codEnabled && (
+                      <motion.button
+                        type="button"
+                        onClick={() => setPaymentMethod('cod')}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`p-4 rounded-xl border-2 transition-all text-left ${
+                          paymentMethod === 'cod'
+                            ? 'border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg'
+                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-green-300 dark:hover:border-green-600'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            paymentMethod === 'cod'
+                              ? 'bg-green-100 dark:bg-green-900/30'
+                              : 'bg-gray-100 dark:bg-gray-600'
+                          }`}>
+                            <Banknote className={`h-5 w-5 ${
+                              paymentMethod === 'cod'
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-gray-600 dark:text-gray-400'
+                            }`} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className={`font-bold text-sm ${
+                                paymentMethod === 'cod'
+                                  ? 'text-green-900 dark:text-green-100'
+                                  : 'text-gray-900 dark:text-gray-100'
+                              }`}>
+                                Cash on Delivery
+                              </h4>
+                              {paymentMethod === 'cod' && (
+                                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                              )}
+                            </div>
+                            <p className={`text-xs leading-relaxed ${
+                              paymentMethod === 'cod'
+                                ? 'text-green-700 dark:text-green-300'
+                                : 'text-gray-600 dark:text-gray-400'
+                            }`}>
+                              Pay with cash when your order is delivered
+                              {storeSettings.codExtraCharge > 0 && (
+                                <span className="block mt-1 font-medium">
+                                  +₹{storeSettings.codExtraCharge} COD charge
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <motion.button
                   type="submit"
-                  disabled={!isOnline}
-                  whileHover={{ scale: isOnline ? 1.02 : 1 }}
-                  whileTap={{ scale: isOnline ? 0.98 : 1 }}
-                  className={`w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center gap-2 text-base shadow-lg ${
-                    isOnline
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-green-500/30 hover:shadow-xl'
-                      : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (paymentMethod === 'razorpay') {
+                      handleRazorpayPayment(e);
+                    } else {
+                      handleSubmit(e);
+                    }
+                  }}
+                  disabled={!isOnline || processingPayment}
+                  whileHover={{ scale: (isOnline && !processingPayment) ? 1.02 : 1 }}
+                  whileTap={{ scale: (isOnline && !processingPayment) ? 0.98 : 1 }}
+                  className={`w-full py-3.5 rounded-full font-bold transition-all flex items-center justify-center gap-2.5 text-base shadow-lg ${
+                    !isOnline || processingPayment
+                      ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                      : paymentMethod === 'razorpay'
+                      ? 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white shadow-gold-500/30 hover:shadow-xl'
+                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-green-500/30 hover:shadow-xl'
                   }`}
                 >
-                  <MessageCircle className="h-5 w-5" />
-                  {isOnline ? 'Complete Order via WhatsApp' : 'Store Offline - Orders Paused'}
+                  {processingPayment ? (
+                    <>
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : !isOnline ? (
+                    <>
+                      <X className="h-5 w-5" />
+                      Store Offline - Orders Paused
+                    </>
+                  ) : paymentMethod === 'razorpay' ? (
+                    <>
+                      <CreditCard className="h-5 w-5" />
+                      Pay ₹{calculateFinalTotal().toLocaleString()} Securely
+                    </>
+                  ) : (
+                    <>
+                      <Banknote className="h-5 w-5" />
+                      Place COD Order - ₹{(calculateFinalTotal() + storeSettings.codExtraCharge).toLocaleString()}
+                    </>
+                  )}
                 </motion.button>
 
                 {/* Security Badge */}
-                {isOnline && (
+                {isOnline && !processingPayment && (
                   <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Secure checkout powered by WhatsApp</span>
+                    <span>
+                      {paymentMethod === 'razorpay' 
+                        ? 'Secure online payment gateway' 
+                        : 'Pay cash on delivery - No advance payment required'}
+                    </span>
                   </div>
                 )}
               </form>
@@ -851,24 +1326,58 @@ Thank you for choosing Elegance Jewelry! 💍
                 </div>
               </div>
 
-              {/* WhatsApp Info Box */}
+              {/* Payment Info Box */}
               <div className={`mt-5 p-4 rounded-lg border-2 ${
                 isOnline
-                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700'
+                  ? paymentMethod === 'razorpay'
+                    ? 'bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20 border-gold-200 dark:border-gold-700'
+                    : 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700'
                   : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-700'
               }`}>
                 <div className="flex items-start gap-2.5">
-                  <div className={`p-1.5 rounded-lg ${isOnline ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                    <MessageCircle className={`h-4 w-4 ${isOnline ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
+                  <div className={`p-1.5 rounded-lg ${
+                    isOnline 
+                      ? paymentMethod === 'razorpay'
+                        ? 'bg-gold-100 dark:bg-gold-900/30'
+                        : 'bg-green-100 dark:bg-green-900/30'
+                      : 'bg-red-100 dark:bg-red-900/30'
+                  }`}>
+                    {isOnline ? (
+                      paymentMethod === 'razorpay' ? (
+                        <CreditCard className="h-4 w-4 text-gold-600 dark:text-gold-400" />
+                      ) : (
+                        <Banknote className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      )
+                    ) : (
+                      <X className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    )}
                   </div>
                   <div className="flex-1">
-                    <p className={`text-sm font-bold mb-0.5 ${isOnline ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
-                      {isOnline ? '✅ WhatsApp Checkout Ready' : '⚠️ Store Currently Offline'}
+                    <p className={`text-sm font-bold mb-0.5 ${
+                      isOnline 
+                        ? paymentMethod === 'razorpay'
+                          ? 'text-gold-900 dark:text-gold-100'
+                          : 'text-green-900 dark:text-green-100'
+                        : 'text-red-900 dark:text-red-100'
+                    }`}>
+                      {!isOnline 
+                        ? '⚠️ Store Currently Offline' 
+                        : paymentMethod === 'razorpay'
+                        ? '✅ Online Payment Available'
+                        : '✅ Cash on Delivery Available'}
                     </p>
-                    <p className={`text-xs leading-relaxed ${isOnline ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                      {isOnline
-                        ? 'Your order will be sent via WhatsApp for quick processing. We\'ll confirm availability and share payment details.'
-                        : 'Orders are temporarily paused. Please check back later or contact us for assistance.'}
+                    <p className={`text-xs leading-relaxed ${
+                      isOnline 
+                        ? paymentMethod === 'razorpay'
+                          ? 'text-gold-700 dark:text-gold-300'
+                          : 'text-green-700 dark:text-green-300'
+                        : 'text-red-700 dark:text-red-300'
+                    }`}>
+                      {!isOnline
+                        ? 'Orders are temporarily paused. Please check back later or contact us for assistance.'
+                        : paymentMethod === 'razorpay'
+                        ? 'Complete your payment instantly with credit/debit cards, UPI, or net banking. Your order will be confirmed immediately.'
+                        : 'Pay with cash when your order is delivered. No advance payment required!'}
                     </p>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import RecommendedProducts from '../components/RecommendedProducts';
 import { addToRecentlyViewed } from '../utils/recentlyViewed';
+import toast from 'react-hot-toast';
 
 interface Product {
   _id: string;
@@ -71,7 +72,10 @@ const ProductDetail: React.FC = () => {
         }).catch(err => console.error('Error tracking view:', err));
       } catch (error: any) {
         setProduct(null);
-        alert('Error fetching product: ' + error.message);
+        toast.error(error.message || 'Failed to load product', {
+          duration: 4000,
+          position: 'top-center',
+        });
       } finally {
         setLoading(false);
       }
@@ -181,6 +185,7 @@ const ProductDetail: React.FC = () => {
                 <img
                   src={product.image}
                   alt={product.name}
+                  loading="eager"
                   className="w-full h-full object-contain"
                 />
               </div>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power, Users, Ticket, Tag, Package } from 'lucide-react';
+import { Plus, CreditCard as Edit2, Trash2, LogOut, Save, X, Power, Users, Ticket, Tag, Package, Settings, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStore } from '../context/StoreContext';
 import CouponManagement from '../components/CouponManagement';
 import DiscountManagement from '../components/DiscountManagement';
+import AdminOrderManagement from '../components/AdminOrderManagement';
+import toast from 'react-hot-toast';
 
 interface Product {
   _id: string;
@@ -55,9 +57,22 @@ const AdminDashboard: React.FC = () => {
   const [showCouponManagement, setShowCouponManagement] = useState(false);
   const [showDiscountManagement, setShowDiscountManagement] = useState(false);
   const [showProductManagement, setShowProductManagement] = useState(false);
+  const [showOrderManagement, setShowOrderManagement] = useState(false);
+  const [showSettingsManagement, setShowSettingsManagement] = useState(false);
   const [isMainAdmin, setIsMainAdmin] = useState(false);
   const { isOnline, setStoreStatus } = useStore();
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [showStoreStatusModal, setShowStoreStatusModal] = useState(false);
+
+  // Settings state
+  const [storeSettings, setStoreSettings] = useState({
+    codEnabled: true,
+    razorpayEnabled: true,
+    storeOpen: true,
+    codMinimumOrder: 0,
+    codMaximumOrder: 100000,
+    codExtraCharge: 0
+  });
+  const [updatingSettings, setUpdatingSettings] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
@@ -94,7 +109,10 @@ const AdminDashboard: React.FC = () => {
       } catch (error: any) {
         setProducts([]);
         setFilteredProducts([]);
-        alert('Error fetching products: ' + error.message);
+        toast.error(error.message || 'Failed to load products', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     };
 
@@ -134,6 +152,69 @@ const AdminDashboard: React.FC = () => {
     fetchProducts();
     fetchAdmins();
   }, [auth.isAuthenticated, navigate]);
+
+  // Fetch store settings
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${backendUrl}/api/settings/admin`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token || localStorage.getItem('adminToken')}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.settings) {
+          setStoreSettings(data.settings);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  // Load settings on mount
+  useEffect(() => {
+    if (isMainAdmin) {
+      fetchSettings();
+    }
+  }, [isMainAdmin]);
+
+  // Handle COD settings update
+  const handleUpdateCODSettings = async (updates: Partial<typeof storeSettings>) => {
+    setUpdatingSettings(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/settings/payment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token || localStorage.getItem('adminToken')}`,
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setStoreSettings(prev => ({ ...prev, ...updates }));
+        toast.success('Settings updated successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
+      } else {
+        toast.error(data.message || 'Failed to update settings', {
+          duration: 4000,
+          position: 'top-center',
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update settings', {
+        duration: 4000,
+        position: 'top-center',
+      });
+    } finally {
+      setUpdatingSettings(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -182,8 +263,15 @@ const AdminDashboard: React.FC = () => {
         setProducts(updated);
         setFilteredProducts(updated);
         resetForm();
+        toast.success('Product updated successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
       } catch (error: any) {
-        alert('Error updating product: ' + error.message);
+        toast.error(error.message || 'Failed to update product', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     } else {
       try {
@@ -205,8 +293,15 @@ const AdminDashboard: React.FC = () => {
         setProducts(updated);
         setFilteredProducts(updated);
         resetForm();
+        toast.success('Product created successfully!', {
+          duration: 3000,
+          position: 'top-center',
+        });
       } catch (error: any) {
-        alert('Error creating product: ' + error.message);
+        toast.error(error.message || 'Failed to create product', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     }
   };
@@ -258,26 +353,17 @@ const AdminDashboard: React.FC = () => {
           const updated = products.filter(p => p._id !== id);
           setProducts(updated);
           setFilteredProducts(updated);
+          toast.success('Product deleted successfully!', {
+            duration: 3000,
+            position: 'top-center',
+          });
         })
         .catch(error => {
-          alert('Error deleting product: ' + error.message);
+          toast.error(error.message || 'Failed to delete product', {
+            duration: 4000,
+            position: 'top-center',
+          });
         });
-    }
-  };
-
-  const handleStoreStatusToggle = async () => {
-    if (!window.confirm(`Are you sure you want to set the store ${isOnline ? 'OFFLINE' : 'ONLINE'}?`)) {
-      return;
-    }
-
-    setUpdatingStatus(true);
-    try {
-      await setStoreStatus(isOnline ? 'offline' : 'online');
-      alert(`Store is now ${isOnline ? 'OFFLINE' : 'ONLINE'}`);
-    } catch (error: any) {
-      alert('Failed to update store status: ' + error.message);
-    } finally {
-      setUpdatingStatus(false);
     }
   };
 
@@ -338,13 +424,44 @@ const AdminDashboard: React.FC = () => {
       if (res.ok) {
         setAllAdmins(prev => prev.filter(a => a._id !== adminId));
         setPendingAdmins(prev => prev.filter(a => a._id !== adminId));
-        alert(`${adminName} has been deleted`);
+        toast.success(`${adminName} has been deleted`, {
+          duration: 3000,
+          position: 'top-center',
+        });
       } else {
         const error = await res.json();
-        alert(error.message || 'Failed to delete admin');
+        toast.error(error.message || 'Failed to delete admin', {
+          duration: 4000,
+          position: 'top-center',
+        });
       }
     } catch (error: any) {
-      alert('Error deleting admin: ' + error.message);
+      toast.error(error.message || 'Failed to delete admin', {
+        duration: 4000,
+        position: 'top-center',
+      });
+    }
+  };
+
+  // Handle store status toggle
+  const handleStoreStatusToggle = async () => {
+    setShowStoreStatusModal(false);
+    setUpdatingSettings(true);
+    try {
+      await setStoreStatus(isOnline ? 'offline' : 'online');
+      // Update local state
+      setStoreSettings(prev => ({ ...prev, storeOpen: !isOnline }));
+      toast.success(`Store is now ${isOnline ? 'OFFLINE' : 'ONLINE'}`, {
+        duration: 3000,
+        position: 'top-center',
+      });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update store status', {
+        duration: 4000,
+        position: 'top-center',
+      });
+    } finally {
+      setUpdatingSettings(false);
     }
   };
 
@@ -359,20 +476,6 @@ const AdminDashboard: React.FC = () => {
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Manage your jewelry collection</p>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-              {isMainAdmin && (
-                <button
-                  onClick={handleStoreStatusToggle}
-                  disabled={updatingStatus}
-                  className={`flex items-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                    isOnline
-                      ? 'bg-green-500 hover:bg-green-600 text-white'
-                      : 'bg-red-500 hover:bg-red-600 text-white'
-                  } ${updatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <Power className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Store: </span>{isOnline ? 'Online' : 'Offline'}
-                </button>
-              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm sm:text-base"
@@ -418,6 +521,8 @@ const AdminDashboard: React.FC = () => {
                   setShowProductManagement(false);
                   setShowCouponManagement(false);
                   setShowDiscountManagement(false);
+                  setShowOrderManagement(false);
+                  setShowSettingsManagement(false);
                 }}
                 className="group relative bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
               >
@@ -448,6 +553,8 @@ const AdminDashboard: React.FC = () => {
                 setShowAdminManagement(false);
                 setShowCouponManagement(false);
                 setShowDiscountManagement(false);
+                setShowOrderManagement(false);
+                setShowSettingsManagement(false);
               }}
               className="group relative bg-gradient-to-br from-gold-500 to-gold-600 dark:from-gold-600 dark:to-gold-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
@@ -470,6 +577,8 @@ const AdminDashboard: React.FC = () => {
                 setShowAdminManagement(false);
                 setShowProductManagement(false);
                 setShowDiscountManagement(false);
+                setShowOrderManagement(false);
+                setShowSettingsManagement(false);
               }}
               className="group relative bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
@@ -492,6 +601,8 @@ const AdminDashboard: React.FC = () => {
                 setShowAdminManagement(false);
                 setShowProductManagement(false);
                 setShowCouponManagement(false);
+                setShowOrderManagement(false);
+                setShowSettingsManagement(false);
               }}
               className="group relative bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             >
@@ -506,6 +617,56 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Price reductions</p>
               </div>
             </button>
+
+            {/* Manage Orders Card */}
+            <button
+              onClick={() => {
+                setShowOrderManagement(!showOrderManagement);
+                setShowAdminManagement(false);
+                setShowProductManagement(false);
+                setShowCouponManagement(false);
+                setShowDiscountManagement(false);
+                setShowSettingsManagement(false);
+              }}
+              className="group relative bg-gradient-to-br from-[#D4AF37] to-[#C5A028] text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+              <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
+                </div>
+                <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
+                  {showOrderManagement ? 'Hide Orders' : 'Manage Orders'}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Track & update</p>
+              </div>
+            </button>
+
+            {/* Settings Card (Main Admin Only) */}
+            {isMainAdmin && (
+              <button
+                onClick={() => {
+                  setShowSettingsManagement(!showSettingsManagement);
+                  setShowOrderManagement(false);
+                  setShowAdminManagement(false);
+                  setShowProductManagement(false);
+                  setShowCouponManagement(false);
+                  setShowDiscountManagement(false);
+                }}
+                className="group relative bg-gradient-to-br from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10"></div>
+                <div className="relative p-3 sm:p-4 md:p-6 flex flex-col items-center justify-center min-h-[120px] sm:min-h-[140px] md:min-h-[160px]">
+                  <div className="bg-white/20 p-2 sm:p-3 md:p-4 rounded-full mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Settings className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
+                  </div>
+                  <h3 className="text-xs sm:text-sm md:text-lg font-semibold mb-0.5 sm:mb-1 text-center">
+                    {showSettingsManagement ? 'Hide Settings' : 'Store Settings'}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Payment options</p>
+                </div>
+              </button>
+            )}
           </div>
         </div>
 
@@ -742,13 +903,22 @@ const AdminDashboard: React.FC = () => {
                                     setPendingAdmins(prev => prev.filter(a => a._id !== admin._id));
                                     const updated = await res.json();
                                     setAllAdmins(prev => [...prev.filter(a => a._id !== admin._id), updated.admin]);
-                                    alert(`${admin.name} has been approved`);
+                                    toast.success(`${admin.name} has been approved`, {
+                                      duration: 3000,
+                                      position: 'top-center',
+                                    });
                                   } else {
                                     const error = await res.json();
-                                    alert(error.message || 'Failed to approve admin');
+                                    toast.error(error.message || 'Failed to approve admin', {
+                                      duration: 4000,
+                                      position: 'top-center',
+                                    });
                                   }
                                 } catch (error: any) {
-                                  alert('Error approving admin: ' + error.message);
+                                  toast.error(error.message || 'Failed to approve admin', {
+                                    duration: 4000,
+                                    position: 'top-center',
+                                  });
                                 }
                               }}
                               className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
@@ -768,13 +938,22 @@ const AdminDashboard: React.FC = () => {
                                     });
                                     if (res.ok) {
                                       setPendingAdmins(prev => prev.filter(a => a._id !== admin._id));
-                                      alert(`${admin.name}'s registration has been rejected`);
+                                      toast.success(`${admin.name}'s registration has been rejected`, {
+                                        duration: 3000,
+                                        position: 'top-center',
+                                      });
                                     } else {
                                       const error = await res.json();
-                                      alert(error.message || 'Failed to reject admin');
+                                      toast.error(error.message || 'Failed to reject admin', {
+                                        duration: 4000,
+                                        position: 'top-center',
+                                      });
                                     }
                                   } catch (error: any) {
-                                    alert('Error rejecting admin: ' + error.message);
+                                    toast.error(error.message || 'Failed to reject admin', {
+                                      duration: 4000,
+                                      position: 'top-center',
+                                    });
                                   }
                                 }
                               }}
@@ -877,6 +1056,205 @@ const AdminDashboard: React.FC = () => {
         {showDiscountManagement && (
           <div className="mb-8">
             <DiscountManagement />
+          </div>
+        )}
+
+        {/* Order Management Section */}
+        {showOrderManagement && (
+          <div className="mb-8">
+            <AdminOrderManagement />
+          </div>
+        )}
+
+        {/* Settings Management Section */}
+        {showSettingsManagement && isMainAdmin && (
+          <div className="mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+                Store Settings
+              </h2>
+
+              {/* Payment Methods Section */}
+              <div className="space-y-6">
+                {/* Store Status Section */}
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                    Store Status
+                  </h3>
+                  
+                  {/* Store Open/Close Toggle */}
+                  <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 border-2 border-blue-200 dark:border-blue-800">
+                    <div className="flex-1">
+                      <h4 className="text-base font-medium text-gray-800 dark:text-white mb-1 flex items-center gap-2">
+                        <Power className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        Store Operational Status
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {isOnline 
+                          ? 'Store is currently ONLINE - Customers can place orders' 
+                          : 'Store is currently OFFLINE - New orders are paused'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowStoreStatusModal(true)}
+                      disabled={updatingSettings}
+                      className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md ${
+                        isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+                      } ${updatingSettings ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span
+                        className={`inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-transform flex items-center justify-center ${
+                          isOnline ? 'translate-x-11' : 'translate-x-1'
+                        }`}
+                      >
+                        <Power className={`h-4 w-4 ${isOnline ? 'text-green-600' : 'text-red-600'}`} />
+                      </span>
+                    </button>
+                  </div>
+                  
+                  {/* Status Indicator */}
+                  <div className={`mt-3 flex items-center gap-2 text-sm font-medium ${
+                    isOnline ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    <div className={`h-3 w-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    {isOnline ? 'Store is accepting orders' : 'Store is not accepting orders'}
+                  </div>
+                </div>
+
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                    Payment Methods
+                  </h3>
+
+                  {/* Cash on Delivery Toggle */}
+                  <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
+                    <div className="flex-1">
+                      <h4 className="text-base font-medium text-gray-800 dark:text-white mb-1">
+                        Cash on Delivery (COD)
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Allow customers to pay with cash when the order is delivered
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleUpdateCODSettings({ codEnabled: !storeSettings.codEnabled })}
+                      disabled={updatingSettings}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 ${
+                        storeSettings.codEnabled ? 'bg-gold-600' : 'bg-gray-300 dark:bg-gray-600'
+                      } ${updatingSettings ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                          storeSettings.codEnabled ? 'translate-x-7' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* COD Settings - Show only when COD is enabled */}
+                  {storeSettings.codEnabled && (
+                    <div className="ml-4 pl-4 border-l-2 border-gold-500 space-y-4">
+                      {/* Minimum Order Amount */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Minimum Order Amount for COD (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={storeSettings.codMinimumOrder}
+                          onChange={(e) => setStoreSettings(prev => ({ ...prev, codMinimumOrder: parseFloat(e.target.value) || 0 }))}
+                          className="w-full sm:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="0"
+                          min="0"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Set to 0 for no minimum
+                        </p>
+                      </div>
+
+                      {/* Maximum Order Amount */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Maximum Order Amount for COD (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={storeSettings.codMaximumOrder}
+                          onChange={(e) => setStoreSettings(prev => ({ ...prev, codMaximumOrder: parseFloat(e.target.value) || 100000 }))}
+                          className="w-full sm:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="100000"
+                          min="0"
+                        />
+                      </div>
+
+                      {/* COD Extra Charge */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          COD Extra Charge (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={storeSettings.codExtraCharge}
+                          onChange={(e) => setStoreSettings(prev => ({ ...prev, codExtraCharge: parseFloat(e.target.value) || 0 }))}
+                          className="w-full sm:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gold-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="0"
+                          min="0"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Additional charge for COD orders (set to 0 for free)
+                        </p>
+                      </div>
+
+                      {/* Save COD Settings Button */}
+                      <button
+                        onClick={() => handleUpdateCODSettings({
+                          codMinimumOrder: storeSettings.codMinimumOrder,
+                          codMaximumOrder: storeSettings.codMaximumOrder,
+                          codExtraCharge: storeSettings.codExtraCharge
+                        })}
+                        disabled={updatingSettings}
+                        className="mt-4 bg-gold-600 text-white px-6 py-2 rounded-lg hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        {updatingSettings ? 'Saving...' : 'Save COD Settings'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Online Payment Toggle */}
+                  <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mt-4">
+                    <div className="flex-1">
+                      <h4 className="text-base font-medium text-gray-800 dark:text-white mb-1">
+                        Online Payment Gateway
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Allow customers to pay online using cards, UPI, wallets, etc.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleUpdateCODSettings({ razorpayEnabled: !storeSettings.razorpayEnabled })}
+                      disabled={updatingSettings}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2 ${
+                        storeSettings.razorpayEnabled ? 'bg-gold-600' : 'bg-gray-300 dark:bg-gray-600'
+                      } ${updatingSettings ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                          storeSettings.razorpayEnabled ? 'translate-x-7' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info Box */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Note:</strong> At least one payment method must be enabled. If you disable both, customers won't be able to place orders.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1050,6 +1428,78 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Store Status Confirmation Modal */}
+      {showStoreStatusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
+            {/* Header */}
+            <div className={`p-6 ${isOnline ? 'bg-gradient-to-r from-red-500 to-orange-500' : 'bg-gradient-to-r from-green-500 to-emerald-500'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-full ${isOnline ? 'bg-red-600' : 'bg-green-600'} bg-opacity-30`}>
+                  <Power className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">
+                    {isOnline ? 'Set Store OFFLINE?' : 'Set Store ONLINE?'}
+                  </h3>
+                  <p className="text-white text-opacity-90 text-sm">
+                    Confirm store status change
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <div className={`rounded-lg p-4 mb-4 ${isOnline ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800'}`}>
+                <p className="text-gray-800 dark:text-gray-200 font-medium mb-2">
+                  {isOnline ? '⚠️ Store will be set to OFFLINE' : '✅ Store will be set to ONLINE'}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {isOnline 
+                    ? 'Customers will not be able to place new orders until you set the store back online.'
+                    : 'Customers will be able to browse and place orders on your store.'}
+                </p>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <strong>Note:</strong> This change takes effect immediately. You can toggle the status back anytime from this dashboard.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 bg-gray-50 dark:bg-gray-900 flex gap-3">
+              <button
+                onClick={() => setShowStoreStatusModal(false)}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStoreStatusToggle}
+                disabled={updatingSettings}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium text-white transition-all ${
+                  isOnline
+                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600'
+                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+                } ${updatingSettings ? 'opacity-50 cursor-not-allowed' : 'shadow-lg hover:shadow-xl'}`}
+              >
+                {updatingSettings ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Updating...
+                  </span>
+                ) : (
+                  `Yes, Set ${isOnline ? 'OFFLINE' : 'ONLINE'}`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

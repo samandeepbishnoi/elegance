@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductFilters from '../components/ProductFilters';
 import { Sparkles, SlidersHorizontal, X, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Fuse from 'fuse.js';
+import toast from 'react-hot-toast';
 
 interface Product {
   _id: string;
@@ -46,13 +47,15 @@ const Homepage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Fuse.js configuration for fuzzy search
-  const fuse = new Fuse(products, {
-    keys: ['name', 'description', 'category', 'tags'],
-    threshold: 0.4, // Lower = more strict, Higher = more fuzzy
-    includeScore: true,
-    minMatchCharLength: 2,
-  });
+  // Memoize Fuse.js instance to prevent recreation on every render - PERFORMANCE FIX
+  const fuse = useMemo(() => {
+    return new Fuse(products, {
+      keys: ['name', 'description', 'category', 'tags'],
+      threshold: 0.4, // Lower = more strict, Higher = more fuzzy
+      includeScore: true,
+      minMatchCharLength: 2,
+    });
+  }, [products]);
 
 
   useEffect(() => {
@@ -66,9 +69,15 @@ const Homepage: React.FC = () => {
         setProducts(data);
         setFilteredProducts(data);
       } catch (error: any) {
+        console.error('Error fetching products:', error);
         setProducts([]);
         setFilteredProducts([]);
-        alert('Error fetching products: ' + error.message);
+        // Improved error handling with toast notification
+        const errorMessage = error.message || 'Unable to load products. Please try again later.';
+        toast.error(errorMessage, {
+          duration: 4000,
+          position: 'top-center',
+        });
       } finally {
         setLoading(false);
       }
@@ -76,6 +85,7 @@ const Homepage: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // Apply filters - OPTIMIZED with proper dependencies
   useEffect(() => {
     let filtered = products;
 
@@ -96,9 +106,12 @@ const Homepage: React.FC = () => {
     );
 
     setFilteredProducts(filtered);
-  }, [products, searchQuery, selectedCategory, priceRange]);
+  }, [products, searchQuery, selectedCategory, priceRange, fuse]);
 
-  const categories = [...new Set(products.map(p => p.category))];
+  // Memoize categories extraction for performance
+  const categories = useMemo(() => {
+    return [...new Set(products.map(p => p.category))];
+  }, [products]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);

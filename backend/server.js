@@ -15,8 +15,12 @@ import discountRoutes from './routes/discountRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import addressRoutes from './routes/addressRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 import { calculateProductDiscount, calculateProductsDiscounts, calculateCartDiscount } from './utils/discountCalculator.js';
 import sseManager from './utils/sseManager.js';
+import { startOrderCleanupScheduler } from './utils/orderScheduler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,6 +96,13 @@ const productSchema = new mongoose.Schema({
     min: 0
   },
 }, { timestamps: true });
+
+// Add indexes for better query performance - PERFORMANCE FIX
+productSchema.index({ category: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ tags: 1 });
+productSchema.index({ name: 'text', description: 'text' });
+productSchema.index({ createdAt: -1 });
 
 const Product = mongoose.model('Product', productSchema);
 
@@ -230,6 +241,13 @@ app.use('/api/discounts', discountRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/addresses', addressRoutes);
+
+// Mount Settings Routes
+app.use('/api/settings', settingsRoutes);
+
+// Mount Payment Routes
+app.use('/api/payment', paymentRoutes);
 
 // Admin Authentication
 app.post('/api/admin/register', async (req, res) => {
@@ -306,7 +324,7 @@ app.post('/api/admin/login', async (req, res) => {
 
 // Product Routes
 
-// Get all products (with discount information)
+// Get all products (with discount information) - OPTIMIZED with lean() and indexing
 app.get('/api/products', async (req, res) => {
   try {
     const { category, tags, minPrice, maxPrice, search } = req.query;
@@ -335,14 +353,18 @@ app.get('/api/products', async (req, res) => {
       ];
     }
 
-    const products = await Product.find(filter).sort({ createdAt: -1 });
+    // Add cache control headers for better performance
+    res.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+
+    // Use lean() for better performance - returns plain JS objects instead of Mongoose documents
+    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
     
     // Calculate discounts for all products
     const productsWithDiscounts = await Promise.all(
       products.map(async (product) => {
-        const discountInfo = await calculateProductDiscount(product.toObject());
+        const discountInfo = await calculateProductDiscount(product);
         return {
-          ...product.toObject(),
+          ...product,
           discountInfo
         };
       })
@@ -354,19 +376,22 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// Get single product (with discount information)
+// Get single product (with discount information) - OPTIMIZED
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).lean();
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
     
+    // Add cache control headers
+    res.set('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+    
     // Calculate discount for this product
-    const discountInfo = await calculateProductDiscount(product.toObject());
+    const discountInfo = await calculateProductDiscount(product);
     
     res.json({
-      ...product.toObject(),
+      ...product,
       discountInfo
     });
   } catch (error) {
@@ -391,15 +416,15 @@ app.post('/api/products/:id/view', async (req, res) => {
   }
 });
 
-// Get product recommendations
+// Get product recommendations - OPTIMIZED
 app.get('/api/products/:id/recommendations', async (req, res) => {
   try {
-    const targetProduct = await Product.findById(req.params.id);
+    const targetProduct = await Product.findById(req.params.id).lean();
     if (!targetProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const allProducts = await Product.find({ _id: { $ne: req.params.id } });
+    const allProducts = await Product.find({ _id: { $ne: req.params.id } }).lean();
 
     if (allProducts.length === 0) {
       return res.json([]);
@@ -929,6 +954,9 @@ const startServer = async () => {
   try {
     await connectDB();
     await createDefaultAdmin();
+    
+    // Start the automatic order cleanup scheduler
+    startOrderCleanupScheduler();
     
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
