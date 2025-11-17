@@ -13,6 +13,7 @@ const api = axios.create({
 export const cartAPI = {
   getCart: (userId: string) => api.get(`/cart/${userId}`),
   updateCart: (userId: string, items: any[]) => api.post(`/cart/${userId}`, { items }),
+  mergeCart: (userId: string, guestItems: any[]) => api.post(`/cart/${userId}/merge`, { guestItems }),
   addItem: (userId: string, item: any) => api.post(`/cart/${userId}/items`, item),
   updateItemQuantity: (userId: string, productId: string, quantity: number) => 
     api.put(`/cart/${userId}/items/${productId}`, { quantity }),
@@ -26,6 +27,8 @@ export const wishlistAPI = {
   getWishlist: (userId: string) => api.get(`/wishlist/${userId}`),
   updateWishlist: (userId: string, items: any[]) => 
     api.post(`/wishlist/${userId}`, { items }),
+  mergeWishlist: (userId: string, guestItems: any[]) => 
+    api.post(`/wishlist/${userId}/merge`, { guestItems }),
   addItem: (userId: string, item: any) => 
     api.post(`/wishlist/${userId}/items`, item),
   removeItem: (userId: string, productId: string) => 

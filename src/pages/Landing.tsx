@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Shield, Star, MessageCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Heart, Shield, MessageCircle, ArrowRight } from 'lucide-react';
 import CategoryHighlights from '../components/CategoryHighlights';
 import TrendingProducts from '../components/TrendingProducts';
 import SpecialOffersCarousel from '../components/SpecialOffersCarousel';
@@ -65,27 +65,6 @@ const Landing: React.FC = () => {
       },
     },
   };
-
-  const testimonials = [
-    {
-      name: 'Sarah Mitchell',
-      role: 'Bride',
-      content: 'The jewelry collection is absolutely stunning. Found the perfect pieces for my wedding day!',
-      rating: 5,
-    },
-    {
-      name: 'Emily Rodriguez',
-      role: 'Fashion Designer',
-      content: 'Exceptional craftsmanship and elegant designs. These pieces elevate any outfit.',
-      rating: 5,
-    },
-    {
-      name: 'Priya Sharma',
-      role: 'Jewelry Enthusiast',
-      content: 'The attention to detail is remarkable. Each piece tells its own story.',
-      rating: 5,
-    },
-  ];
 
   const features = [
     {
@@ -356,52 +335,6 @@ const Landing: React.FC = () => {
               View Full Collection
             </motion.button>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-4">
-              What Our Customers Say
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Stories from those who chose elegance
-            </p>
-          </motion.div>
-
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                whileHover={{ y: -5 }}
-                className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl shadow-lg"
-              >
-                <div className="flex mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-amber-500 fill-amber-500" />
-                  ))}
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 italic leading-relaxed">"{testimonial.content}"</p>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white">{testimonial.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

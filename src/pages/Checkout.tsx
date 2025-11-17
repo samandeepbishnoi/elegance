@@ -59,7 +59,7 @@ interface ProductWithDiscount {
 }
 
 const Checkout: React.FC = () => {
-  const { state, dispatch } = useCart();
+  const { state, dispatch, clearCartAfterCheckout } = useCart();
   const navigate = useNavigate();
   const { isOnline } = useStore();
   const { isAuthenticated, user } = useAuth();
@@ -442,8 +442,8 @@ const Checkout: React.FC = () => {
               const verifyData = await verifyResponse.json();
 
               if (verifyData.success) {
-                // Clear cart
-                dispatch({ type: 'CLEAR_CART' });
+                // Clear cart from both server and localStorage
+                await clearCartAfterCheckout();
                 
                 // Navigate to success page with order details
                 navigate('/payment-success', {
@@ -623,8 +623,8 @@ const Checkout: React.FC = () => {
       const orderData = await orderResponse.json();
 
       if (orderData.success) {
-        // Clear cart
-        dispatch({ type: 'CLEAR_CART' });
+        // Clear cart from both server and localStorage
+        await clearCartAfterCheckout();
         
         // Navigate to success page with order details
         navigate('/payment-success', {

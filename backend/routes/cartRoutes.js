@@ -141,6 +141,57 @@ router.delete('/:userId/items/:productId', async (req, res) => {
   }
 });
 
+// Merge guest cart with server cart (ONE-TIME operation on login)
+router.post('/:userId/merge', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { guestItems } = req.body; // Cart items from localStorage
+    
+    if (!Array.isArray(guestItems)) {
+      return res.status(400).json({ error: 'Invalid guest items' });
+    }
+    
+    let cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      // No server cart exists - just save guest items
+      cart = new Cart({
+        userId,
+        items: guestItems
+      });
+    } else {
+      // Merge: add guest items to existing server cart
+      // If item exists, sum quantities; otherwise add new item
+      guestItems.forEach(guestItem => {
+        const existingItemIndex = cart.items.findIndex(
+          item => item._id === guestItem._id
+        );
+        
+        if (existingItemIndex > -1) {
+          // Item exists - add quantities
+          cart.items[existingItemIndex].quantity += guestItem.quantity || 1;
+        } else {
+          // New item - add to cart
+          cart.items.push(guestItem);
+        }
+      });
+    }
+    
+    await cart.save();
+    
+    console.log(`✅ Cart merged for user ${userId}: ${guestItems.length} guest items merged`);
+    
+    res.json({
+      success: true,
+      cart: cart,
+      message: 'Cart merged successfully'
+    });
+  } catch (error) {
+    console.error('Error merging cart:', error);
+    res.status(500).json({ error: 'Failed to merge cart' });
+  }
+});
+
 // Clear cart
 router.delete('/:userId', async (req, res) => {
   try {
@@ -165,3 +216,4 @@ router.delete('/:userId', async (req, res) => {
 });
 
 export default router;
+

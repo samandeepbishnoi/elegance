@@ -5,6 +5,64 @@ export const STORAGE_KEYS = {
   GUEST_WISHLIST: 'wishlist_guest',
   LEGACY_CART: 'cart',
   LEGACY_WISHLIST: 'wishlist',
+  CART_SYNCED: 'cart_synced', // Flag to prevent duplicate merges
+  WISHLIST_SYNCED: 'wishlist_synced', // Flag to prevent duplicate merges
+};
+
+/**
+ * Check if cart has been synced for current user session
+ */
+export const isCartSynced = (): boolean => {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.CART_SYNCED) === 'true';
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Check if wishlist has been synced for current user session
+ */
+export const isWishlistSynced = (): boolean => {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.WISHLIST_SYNCED) === 'true';
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Mark cart as synced
+ */
+export const markCartAsSynced = (): void => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CART_SYNCED, 'true');
+  } catch (error) {
+    console.error('Error marking cart as synced:', error);
+  }
+};
+
+/**
+ * Mark wishlist as synced
+ */
+export const markWishlistAsSynced = (): void => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.WISHLIST_SYNCED, 'true');
+  } catch (error) {
+    console.error('Error marking wishlist as synced:', error);
+  }
+};
+
+/**
+ * Reset sync flags (call on logout)
+ */
+export const resetSyncFlags = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.CART_SYNCED);
+    localStorage.removeItem(STORAGE_KEYS.WISHLIST_SYNCED);
+  } catch (error) {
+    console.error('Error resetting sync flags:', error);
+  }
 };
 
 /**
@@ -54,7 +112,7 @@ export const getGuestWishlist = (): any[] => {
 };
 
 /**
- * Save guest cart to localStorage
+ * Save guest cart to localStorage (only for guest users)
  */
 export const saveGuestCart = (cart: any[]): void => {
   try {
@@ -66,7 +124,7 @@ export const saveGuestCart = (cart: any[]): void => {
 };
 
 /**
- * Save guest wishlist to localStorage
+ * Save guest wishlist to localStorage (only for guest users)
  */
 export const saveGuestWishlist = (wishlist: any[]): void => {
   try {
@@ -78,15 +136,44 @@ export const saveGuestWishlist = (wishlist: any[]): void => {
 };
 
 /**
- * Clear guest data from localStorage after successful sync
+ * Clear ALL guest data from localStorage after successful sync
+ * This prevents old data from being merged again on refresh
  */
 export const clearGuestData = (): void => {
   try {
     localStorage.removeItem(STORAGE_KEYS.GUEST_CART);
     localStorage.removeItem(STORAGE_KEYS.GUEST_WISHLIST);
-    // Keep legacy keys for backward compatibility - they'll be overwritten
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_CART);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_WISHLIST);
+    console.log('✅ Guest data cleared from localStorage');
   } catch (error) {
     console.error('Error clearing guest data:', error);
+  }
+};
+
+/**
+ * Clear cart from localStorage (after checkout)
+ */
+export const clearLocalCart = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.GUEST_CART);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_CART);
+    console.log('✅ Cart cleared from localStorage');
+  } catch (error) {
+    console.error('Error clearing local cart:', error);
+  }
+};
+
+/**
+ * Clear wishlist from localStorage
+ */
+export const clearLocalWishlist = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.GUEST_WISHLIST);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_WISHLIST);
+    console.log('✅ Wishlist cleared from localStorage');
+  } catch (error) {
+    console.error('Error clearing local wishlist:', error);
   }
 };
 

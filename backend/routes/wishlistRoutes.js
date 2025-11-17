@@ -104,6 +104,53 @@ router.delete('/:userId/items/:productId', async (req, res) => {
   }
 });
 
+// Merge guest wishlist with server wishlist (ONE-TIME operation on login)
+router.post('/:userId/merge', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { guestItems } = req.body; // Wishlist items from localStorage
+    
+    if (!Array.isArray(guestItems)) {
+      return res.status(400).json({ error: 'Invalid guest items' });
+    }
+    
+    let wishlist = await Wishlist.findOne({ userId });
+    
+    if (!wishlist) {
+      // No server wishlist exists - just save guest items
+      wishlist = new Wishlist({
+        userId,
+        items: guestItems
+      });
+    } else {
+      // Merge: add guest items to existing server wishlist (avoid duplicates)
+      guestItems.forEach(guestItem => {
+        const exists = wishlist.items.some(
+          item => item._id === guestItem._id
+        );
+        
+        if (!exists) {
+          // New item - add to wishlist
+          wishlist.items.push(guestItem);
+        }
+      });
+    }
+    
+    await wishlist.save();
+    
+    console.log(`✅ Wishlist merged for user ${userId}: ${guestItems.length} guest items merged`);
+    
+    res.json({
+      success: true,
+      wishlist: wishlist,
+      message: 'Wishlist merged successfully'
+    });
+  } catch (error) {
+    console.error('Error merging wishlist:', error);
+    res.status(500).json({ error: 'Failed to merge wishlist' });
+  }
+});
+
 // Clear wishlist
 router.delete('/:userId', async (req, res) => {
   try {
