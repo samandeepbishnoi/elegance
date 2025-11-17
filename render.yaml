@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: elegance-frontend
+    name: parikajewels-frontend
     env: static
     buildCommand: npm run build
     staticPublishPath: ./dist

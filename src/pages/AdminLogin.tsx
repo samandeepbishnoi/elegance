@@ -148,7 +148,7 @@ const AdminLogin: React.FC = () => {
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-600 mb-2"><strong>Demo Credentials:</strong></p>
-            <p className="text-xs text-gray-600">Email: admin@elegance.com</p>
+            <p className="text-xs text-gray-600">Email: admin@parikajewels.com</p>
             <p className="text-xs text-gray-600">Password: admin123</p>
           </div>
         </div>

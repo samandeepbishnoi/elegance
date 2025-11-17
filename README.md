@@ -1,6 +1,8 @@
-# 💎 Elegance Jewelry Catalog Website
+# 💎 Parika Jewels - Wholesale Imitation Jewellery Platform
 
-A complete full-stack jewelry e-commerce solution built with modern web technologies, featuring a luxurious customer experience with AI-powered recommendations, advanced discount system, WhatsApp checkout, and a comprehensive admin dashboard for inventory and promotions management.
+A complete full-stack wholesale jewellery e-commerce solution built with modern web technologies, featuring a luxurious customer experience with AI-powered recommendations, advanced discount system, WhatsApp checkout, and a comprehensive admin dashboard for inventory and promotions management.
+
+**Business Model**: Premium and exclusive imitation jewellery wholesaler serving retailers and bulk buyers worldwide.
 
 ## ✨ Key Highlights
 
@@ -268,7 +270,7 @@ jewelry-catalog-website/
    JWT_SECRET=your-super-secret-jwt-key-min-32-chars
    
    # Admin Default Credentials
-   ADMIN_EMAIL=admin@elegance.com
+   ADMIN_EMAIL=admin@parikajewels.com
    ADMIN_PASSWORD=admin123
    
    # Server
@@ -333,7 +335,7 @@ jewelry-catalog-website/
 ## 🔐 Default Admin Credentials
 
 ```
-Email: admin@elegance.com
+Email: admin@parikajewels.com
 Password: admin123
 ```
 
@@ -516,7 +518,7 @@ Address: 123 Main Street, City
 Pin Code: 400001
 Notes: Ring size 7, gift wrapping required
 
-Thank you for choosing Elegance Jewelry! 💍
+Thank you for choosing Parika Jewels! 💍
 ```
 
 ### Features
@@ -664,7 +666,7 @@ This project is configured for deployment on Render.com with the following setup
 # Backend (.env)
 MONGODB_URI=your-mongodb-atlas-connection-string
 JWT_SECRET=secure-random-secret-key-min-32-chars
-ADMIN_EMAIL=admin@elegance.com
+ADMIN_EMAIL=admin@parikajewels.com
 ADMIN_PASSWORD=your-secure-admin-password
 NODE_ENV=production
 PORT=5001
@@ -871,7 +873,7 @@ See [`SPA_ROUTING_FIX.md`](SPA_ROUTING_FIX.md) for detailed documentation.
 
 ### Business Inquiries
 - **WhatsApp Business**: +91 9896076856 (configured via VITE_WHATSAPP_NUMBER)
-- **Email**: admin@elegance.com
+- **Email**: admin@parikajewels.com
 - **Business Hours**: 10 AM - 8 PM (Mon-Sat)
 
 ### Technical Support

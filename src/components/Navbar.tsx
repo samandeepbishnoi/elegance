@@ -84,7 +84,7 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <Crown className="h-8 w-8 text-gold-500" />
             <span className="font-serif text-2xl font-bold text-gray-900 dark:text-white">
-              Elegance
+              Parika Jewels
             </span>
           </Link>
 

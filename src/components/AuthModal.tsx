@@ -149,12 +149,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="relative z-10">
                     <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
                       <Crown className="h-7 w-7 sm:h-10 sm:w-10" />
-                      <h2 className="font-serif text-2xl sm:text-4xl font-bold">Elegance</h2>
+                      <h2 className="font-serif text-2xl sm:text-4xl font-bold">Parika Jewels</h2>
                     </div>
                     <p className="text-white/90 text-sm sm:text-base">
                       {mode === 'sign-in' 
                         ? 'Welcome back! Sign in to continue your journey' 
-                        : 'Join our exclusive collection of elegance'}
+                        : 'Join our exclusive collection'}
                     </p>
                   </div>
                 </div>

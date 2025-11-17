@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://elegance-backend.onrender.com/api/:path*"
+      "destination": "https://parikajewels-backend.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

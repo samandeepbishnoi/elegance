@@ -412,8 +412,8 @@ const Checkout: React.FC = () => {
           key: orderData.order.razorpayKeyId,
           amount: orderData.order.amount * 100,
           currency: orderData.order.currency,
-          name: 'Elegance Jewelry',
-          description: 'Luxury Jewelry Order',
+          name: 'Parika Jewels',
+          description: 'Premium Imitation Jewellery Order',
           order_id: orderData.order.razorpayOrderId,
           theme: {
             color: '#D4AF37' // Gold theme

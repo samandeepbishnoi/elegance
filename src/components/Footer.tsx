@@ -10,10 +10,10 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Crown className="h-8 w-8 text-gold-500" />
-              <span className="font-serif text-2xl font-bold">Elegance</span>
+              <span className="font-serif text-2xl font-bold">Parika Jewels</span>
             </div>
             <p className="text-gray-300 mb-4">
-              Discover exquisite jewelry crafted with precision and passion. From timeless classics to contemporary designs, we bring you the finest collection of jewelry for every occasion.
+              Premium and exclusive imitation jewellery wholesaler. Serving retailers and bulk buyers with high-quality designs at competitive wholesale prices. Worldwide shipping available with online payment accepted.
             </p>
           </div>
 
@@ -23,35 +23,35 @@ const Footer: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gold-500" />
-                <span className="text-gray-300">+91 98765 43210</span>
+                <span className="text-gray-300">+91 9896076856</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-gold-500" />
-                <span className="text-gray-300">info@elegancejewelry.com</span>
+                <span className="text-gray-300">info@parikajewels.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-gold-500" />
-                <span className="text-gray-300">123 Jewelry Street, Mumbai</span>
+                <span className="text-gray-300">India | Worldwide Shipping</span>
               </div>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Categories</h3>
+            <h3 className="text-lg font-semibold mb-4">Our Services</h3>
             <div className="space-y-2">
-              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Rings</p>
-              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Necklaces</p>
-              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Earrings</p>
-              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Bracelets</p>
-              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Bridal Collection</p>
+              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Wholesale Orders</p>
+              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Bulk Purchasing</p>
+              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Worldwide Shipping</p>
+              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Online Payment</p>
+              <p className="text-gray-300 hover:text-gold-500 cursor-pointer">Retailer Support</p>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-300">
-            © 2024 Elegance Jewelry. All rights reserved. | Crafted with ❤️ for jewelry lovers
+            © Parika Jewels. All rights reserved. | Premium Imitation Jewellery Wholesaler
           </p>
         </div>
       </div>

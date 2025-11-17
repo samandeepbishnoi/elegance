@@ -9,7 +9,7 @@ When refreshing pages like `/catalog`, `/admin/login`, etc., the server returns 
 Updated `/public/_redirects` with:
 ```
 # SPA routing for React app
-/api/*  https://elegance-backend.onrender.com/api/:splat  200
+/api/*  https://parikajewels-backend.onrender.com/api/:splat  200
 /*      /index.html   200
 ```
 This tells the server to:
@@ -21,7 +21,7 @@ Created `render.yaml` for explicit Render.com configuration:
 ```yaml
 services:
   - type: web
-    name: elegance-frontend
+    name: parikajewels-frontend
     env: static
     buildCommand: npm run build
     staticPublishPath: ./dist

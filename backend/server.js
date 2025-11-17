@@ -50,7 +50,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://elegance-frontend.onrender.com',
+    'https://parikajewels-frontend.onrender.com',
     process.env.VITE_FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
@@ -771,7 +771,7 @@ Query: "I want diamond rings"
 Response: {"category": "ring", "material": "diamond", "priceRange": {"min": null, "max": null}, "occasion": null, "tags": ["diamond", "ring"], "responseMessage": "Let me show you our stunning diamond ring collection!"}
 
 Query: "Show me jewelry for daily wear"
-Response: {"category": null, "material": null, "priceRange": {"min": null, "max": null}, "occasion": "daily wear", "tags": ["daily wear"], "responseMessage": "Here are some perfect pieces for everyday elegance!"}
+Response: {"category": null, "material": null, "priceRange": {"min": null, "max": null}, "occasion": "daily wear", "tags": ["daily wear"], "responseMessage": "Here are some perfect pieces for everyday wear!"}
 
 Query: "What's available?"
 Response: {"category": null, "material": null, "priceRange": {"min": null, "max": null}, "occasion": null, "tags": [], "responseMessage": "Let me show you our beautiful jewelry collection!"}
@@ -936,13 +936,13 @@ const createDefaultAdmin = async () => {
     if (adminCount === 0) {
       const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 12);
       const defaultAdmin = new Admin({
-        email: process.env.ADMIN_EMAIL || 'admin@elegance.com',
+        email: process.env.ADMIN_EMAIL || 'admin@parikajewels.com',
         password: hashedPassword,
         name: 'Main Admin',
         role: 'main',
       });
       await defaultAdmin.save();
-      console.log(`Default main admin user created: ${process.env.ADMIN_EMAIL || 'admin@elegance.com'}`);
+      console.log(`Default main admin user created: ${process.env.ADMIN_EMAIL || 'admin@parikajewels.com'}`);
     }
   } catch (error) {
     console.error('Error creating default admin:', error);

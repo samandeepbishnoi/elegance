@@ -248,11 +248,11 @@ const PaymentSuccess: React.FC = () => {
         <div className="mt-12 text-center">
           <div className="flex items-center justify-center gap-2 text-gold-600 dark:text-gold-400 mb-4">
             <Sparkles className="h-5 w-5" />
-            <span className="font-semibold">Elegance Jewelry</span>
+            <span className="font-semibold">Parika Jewels</span>
             <Sparkles className="h-5 w-5" />
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Thank you for choosing luxury. We're honored to serve you.
+            Thank you for choosing us. Your order will be processed and shipped soon.
           </p>
         </div>
       </div>

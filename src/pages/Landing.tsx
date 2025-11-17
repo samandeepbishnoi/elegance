@@ -69,24 +69,24 @@ const Landing: React.FC = () => {
   const features = [
     {
       icon: Shield,
-      title: 'Certified Authenticity',
-      description: 'Every piece comes with certification guaranteeing quality and authenticity',
+      title: 'Wholesale Pricing',
+      description: 'Competitive wholesale rates for retailers and bulk buyers worldwide',
     },
     {
       icon: Heart,
-      title: 'Handcrafted Excellence',
-      description: 'Meticulously crafted by skilled artisans with decades of experience',
+      title: 'Premium Quality',
+      description: 'High-quality imitation jewellery that looks and feels authentic',
     },
     {
       icon: Sparkles,
-      title: 'Premium Materials',
-      description: 'Only the finest gold, diamonds, and precious stones',
+      title: 'Worldwide Shipping',
+      description: 'Fast and reliable shipping to customers across the globe',
     },
   ];
 
   const handleWhatsAppClick = () => {
     const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '919896076856';
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello! I am interested in your jewelry collection.')}`, '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello! I am interested in your wholesale jewellery collection. Please share catalogue and pricing.')}`, '_blank');
   };
 
   // Background carousel images
@@ -115,6 +115,7 @@ const Landing: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{ paddingTop: '10vh' }}
       >
         {/* Background Image Carousel */}
         <div className="absolute inset-0 overflow-hidden">
@@ -133,20 +134,20 @@ const Landing: React.FC = () => {
                 className="w-full h-full bg-cover bg-center"
                 style={{ backgroundImage: `url(${image})` }}
               />
-              {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 dark:from-black/80 dark:via-black/60 dark:to-black/80"></div>
+              {/* Overlay gradient - reduced opacity to show images better */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/30 to-black/40 dark:from-black/50 dark:via-black/40 dark:to-black/50"></div>
             </motion.div>
           ))}
           
-          {/* Additional decorative gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-gray-900/30"></div>
+          {/* Additional decorative gradient overlay - darker at bottom for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 dark:to-black/60"></div>
         </div>
 
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto"
+          className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto mb-16 w-full"
         >
           <motion.div variants={itemVariants} className="mb-6 flex justify-center">
             <motion.div
@@ -165,20 +166,24 @@ const Landing: React.FC = () => {
 
           <motion.h1
             variants={itemVariants}
-            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-2xl"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight"
+            style={{ textShadow: '0 4px 6px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6)' }}
           >
-            Elegance in Every
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400">
-              Precious Moment
+            Premium Imitation Jewellery
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400"
+              style={{ textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)' }}
+            >
+              At Wholesale Prices
             </span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl md:text-2xl text-white mb-12 max-w-3xl mx-auto leading-relaxed px-4 drop-shadow-lg"
+            className="text-base sm:text-lg md:text-xl text-white mb-10 max-w-2xl mx-auto leading-relaxed px-4"
+            style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.8)' }}
           >
-            Discover timeless beauty with our exquisite collection of handcrafted jewelry.
-            Each piece tells a story of artistry, passion, and uncompromising quality.
+            Your trusted wholesale partner for exclusive and premium imitation jewellery.
+            Worldwide shipping available with online payment accepted.
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4">
@@ -208,7 +213,7 @@ const Landing: React.FC = () => {
       {/* Category Highlights Section */}
       <CategoryHighlights />
 
-      {/* Why Choose Elegance Section */}
+      {/* Why Choose Parika Jewels Section */}
       <section className="py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -219,10 +224,10 @@ const Landing: React.FC = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose Elegance
+              Why Choose Parika Jewels
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              We combine traditional craftsmanship with modern design to create jewelry that lasts forever
+              Your trusted wholesale partner for premium imitation jewellery with worldwide reach
             </p>
           </motion.div>
 
@@ -273,7 +278,7 @@ const Landing: React.FC = () => {
               Featured Collection
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              Handpicked pieces that define elegance
+              Handpicked designs perfect for your retail store
             </p>
           </motion.div>
 

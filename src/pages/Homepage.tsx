@@ -153,14 +153,14 @@ const Homepage: React.FC = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Exquisite Jewelry Collection
+              Premium Imitation Jewellery
             </h1>
             <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              Discover timeless elegance with our carefully curated selection of premium jewelry pieces
+              Wholesale collection of exclusive imitation jewellery for retailers and bulk buyers
             </p>
             <div className="flex items-center justify-center gap-2">
               <Sparkles className="h-5 w-5 text-gold-500 dark:text-gold-400" />
-              <span className="text-gold-700 dark:text-gold-400 font-medium">Handcrafted with Love</span>
+              <span className="text-gold-700 dark:text-gold-400 font-medium">Worldwide Shipping Available</span>
               <Sparkles className="h-5 w-5 text-gold-500 dark:text-gold-400" />
             </div>
           </motion.div>
