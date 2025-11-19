@@ -21,16 +21,13 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      console.log('Attempting login with:', { email, password });
-  const response = await fetch(`${backendUrl}/api/admin/login`, {
+      const response = await fetch(`${backendUrl}/api/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
-      
-      console.log('Response status:', response);
 
       if (response.ok) {
         const data = await response.json();

@@ -40,7 +40,7 @@ createRoot(document.getElementById('root')!).render(
             },
           },
           error: {
-            duration: 3000, // Errors stay a bit longer so users can read them
+            duration: 5000, // Increased from 3000ms to 5000ms for better readability
           },
         }}
       />

@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ChatAssistant from './components/ChatAssistant';
 import RealtimeIndicator from './components/RealtimeIndicator';
 import ScrollToTop from './components/ScrollToTop';
+import { PageLoadingSkeleton } from './components/SkeletonLoaders';
 import Landing from './pages/Landing';
 import Homepage from './pages/Homepage';
 import ProductDetail from './pages/ProductDetail';
@@ -13,17 +15,12 @@ import Checkout from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
-import AdminLogin from './pages/AdminLogin';
-import AdminRegister from './pages/AdminRegister';
-import AdminDashboard from './pages/AdminDashboard';
-import { CartProvider } from './context/CartContext';
-import { WishlistProvider } from './context/WishlistContext';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { StoreProvider } from './context/StoreContext';
-import { DiscountProvider } from './context/DiscountContext';
-import { DiscountProvider as DiscountBannerProvider } from './context/DiscountBannerContext';
-import { RealtimeProvider } from './context/RealtimeContext';
+import { AppProviders } from './context/AppProviders';
+
+// Lazy load admin routes for better initial bundle size
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminRegister = lazy(() => import('./pages/AdminRegister'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 // Component to conditionally render Navbar and Footer
 function Layout() {
@@ -44,9 +41,31 @@ function Layout() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/register" element={<AdminRegister />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          {/* Admin routes with lazy loading */}
+          <Route 
+            path="/admin/login" 
+            element={
+              <Suspense fallback={<PageLoadingSkeleton />}>
+                <AdminLogin />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/register" 
+            element={
+              <Suspense fallback={<PageLoadingSkeleton />}>
+                <AdminRegister />
+              </Suspense>
+            } 
+          />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <Suspense fallback={<PageLoadingSkeleton />}>
+                <AdminDashboard />
+              </Suspense>
+            } 
+          />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
@@ -57,32 +76,16 @@ function Layout() {
 }
 
 function App() {
-  // Optimized context provider nesting - AuthProvider and ThemeProvider should be outermost
-  // as they're used most frequently. RealtimeProvider and StoreProvider provide data to others.
-  // CartProvider and WishlistProvider depend on AuthContext so they're nested deeper.
+  // Simplified with composed providers - see context/AppProviders.tsx
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <RealtimeProvider>
-          <StoreProvider>
-            <DiscountProvider>
-              <DiscountBannerProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <Router>
-                      <ScrollToTop />
-                      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-                        <Layout />
-                      </div>
-                    </Router>
-                  </WishlistProvider>
-                </CartProvider>
-              </DiscountBannerProvider>
-            </DiscountProvider>
-          </StoreProvider>
-        </RealtimeProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <AppProviders>
+      <Router>
+        <ScrollToTop />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+          <Layout />
+        </div>
+      </Router>
+    </AppProviders>
   );
 }
 

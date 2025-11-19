@@ -139,13 +139,12 @@ export const saveGuestWishlist = (wishlist: any[]): void => {
  * Clear ALL guest data from localStorage after successful sync
  * This prevents old data from being merged again on refresh
  */
-export const clearGuestData = (): void => {
+export const clearGuestData = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.GUEST_CART);
     localStorage.removeItem(STORAGE_KEYS.GUEST_WISHLIST);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_CART);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_WISHLIST);
-    console.log('✅ Guest data cleared from localStorage');
+    localStorage.removeItem(STORAGE_KEYS.CART_SYNCED);
+    localStorage.removeItem(STORAGE_KEYS.WISHLIST_SYNCED);
   } catch (error) {
     console.error('Error clearing guest data:', error);
   }
@@ -154,11 +153,10 @@ export const clearGuestData = (): void => {
 /**
  * Clear cart from localStorage (after checkout)
  */
-export const clearLocalCart = (): void => {
+export const clearLocalCart = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.GUEST_CART);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_CART);
-    console.log('✅ Cart cleared from localStorage');
+    localStorage.removeItem(STORAGE_KEYS.CART_SYNCED);
   } catch (error) {
     console.error('Error clearing local cart:', error);
   }
@@ -167,11 +165,10 @@ export const clearLocalCart = (): void => {
 /**
  * Clear wishlist from localStorage
  */
-export const clearLocalWishlist = (): void => {
+export const clearLocalWishlist = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.GUEST_WISHLIST);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_WISHLIST);
-    console.log('✅ Wishlist cleared from localStorage');
+    localStorage.removeItem(STORAGE_KEYS.WISHLIST_SYNCED);
   } catch (error) {
     console.error('Error clearing local wishlist:', error);
   }

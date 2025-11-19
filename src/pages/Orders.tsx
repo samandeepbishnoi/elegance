@@ -5,6 +5,7 @@ import { ShoppingBag, Package, Clock, CheckCircle, XCircle, RefreshCw, Truck, Al
 import { useAuth } from '../context/AuthContext';
 import ProtectedContent from '../components/ProtectedContent';
 import OrderCard from '../components/OrderCard';
+import { OrderCardSkeleton } from '../components/SkeletonLoaders';
 
 interface Order {
   _id: string;
@@ -189,11 +190,10 @@ const Orders: React.FC = () => {
 
           {/* Orders List */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="inline-block h-10 w-10 border-4 border-gold-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">Loading your orders...</p>
-              </div>
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <OrderCardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredOrders.length === 0 ? (
             <motion.div

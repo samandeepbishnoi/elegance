@@ -4,6 +4,7 @@ import { Heart, ShoppingBag, ArrowLeft, Star, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import RecommendedProducts from '../components/RecommendedProducts';
+import { ProductDetailSkeleton } from '../components/SkeletonLoaders';
 import { addToRecentlyViewed } from '../utils/recentlyViewed';
 import toast from 'react-hot-toast';
 
@@ -120,17 +121,7 @@ const ProductDetail: React.FC = () => {
   }, [product, backendUrl]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-gold-200/30 dark:bg-gold-500/10 rounded-full blur-xl animate-pulse"></div>
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gold-200 dark:border-gray-700 border-t-gold-500 relative"></div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">Loading product...</p>
-        </div>
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {

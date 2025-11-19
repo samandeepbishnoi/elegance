@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, Crown, Moon, Sun, Lock, LogOut, User, Menu, X, LogIn, Package, Sparkles } from 'lucide-react';
+import { ShoppingBag, Heart, Crown, Moon, Sun, Lock, LogOut, User, Menu, X, LogIn, Package, Sparkles, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
-import { useDiscount } from '../context/DiscountBannerContext';
+import { useDiscountBanner } from '../context/DiscountBannerContext';
 import { useAuth } from '../context/AuthContext';
 import SmartSearch from './SmartSearch';
 import CartDrawer from './CartDrawer';
@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
   const { state: wishlistState } = useWishlist();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { isOnline } = useStore();
-  const { hasActiveDiscounts } = useDiscount();
+  const { hasActiveDiscounts } = useDiscountBanner();
   const { isAuthenticated, isLoaded, user, signOut } = useAuth();
   const location = useLocation();
   
@@ -246,7 +246,16 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Actions */}
-          <div className="md:hidden flex items-center space-x-4">
+          <div className="md:hidden flex items-center space-x-3">
+            {/* Mobile Search Icon */}
+            <button
+              onClick={() => setIsOpen(true)}
+              className="text-gray-700 dark:text-gray-200 hover:text-gold-600 dark:hover:text-gold-400 transition-colors duration-200"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            
             {/* Wishlist Icon */}
             <button
               onClick={() => setIsWishlistOpen(true)}

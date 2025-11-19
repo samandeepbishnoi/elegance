@@ -4,6 +4,7 @@ import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Gift, RefreshCw } from
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DrawerItemSkeleton } from './SkeletonLoaders';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -36,8 +37,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [totalSavings, setTotalSavings] = useState(0);
   const [finalTotal, setFinalTotal] = useState(0);
+  const [cachedProducts, setCachedProducts] = useState<Map<string, ProductWithDiscount>>(new Map());
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
 
   useEffect(() => {
     const fetchDiscountedProducts = async () => {
@@ -46,25 +50,40 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         return;
       }
 
+      const now = Date.now();
+      const shouldRefetch = now - lastFetchTime > CACHE_DURATION;
+
       try {
         const productsPromises = state.items.map(async (item) => {
+          // Check cache first
+          const cached = cachedProducts.get(item._id);
+          if (cached && !shouldRefetch) {
+            return { ...cached, quantity: item.quantity };
+          }
+
           try {
             const res = await fetch(`${backendUrl}/api/products/${item._id}`);
             if (res.ok) {
               const productData = await res.json();
-              return {
+              const productWithDiscount = {
                 ...item,
                 discountInfo: productData.discountInfo
               } as ProductWithDiscount;
+              
+              // Update cache
+              setCachedProducts(prev => new Map(prev).set(item._id, productWithDiscount));
+              return productWithDiscount;
             }
           } catch (error) {
-            console.error(`Error fetching product ${item._id}:`, error);
+            // Silent error - use cached if available
+            if (cached) return { ...cached, quantity: item.quantity };
           }
           return item as ProductWithDiscount;
         });
 
         const products = await Promise.all(productsPromises);
         setProductsWithDiscounts(products);
+        setLastFetchTime(now);
 
         let savings = 0;
         let total = 0;
@@ -81,7 +100,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
         setTotalSavings(savings);
         setFinalTotal(total);
       } catch (error) {
-        console.error('Error fetching discounted products:', error);
+        // Silent error handling
       } finally {
         setLoading(false);
       }
@@ -90,7 +109,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     if (isOpen) {
       fetchDiscountedProducts();
     }
-  }, [state.items, backendUrl, isOpen]);
+  }, [state.items, backendUrl, isOpen, cachedProducts, lastFetchTime]);
 
   const updateQuantity = (id: string, quantity: number) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
@@ -176,8 +195,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   </Link>
                 </div>
               ) : loading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gold-200 dark:border-gray-700 border-t-gold-500"></div>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <DrawerItemSkeleton key={i} />
+                  ))}
                 </div>
               ) : (
                 <div className="space-y-4">

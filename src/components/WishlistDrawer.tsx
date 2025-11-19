@@ -35,8 +35,11 @@ const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
   const { isSyncing } = useAuth();
   const [productsWithDiscounts, setProductsWithDiscounts] = useState<ProductWithDiscount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cachedProducts, setCachedProducts] = useState<Map<string, ProductWithDiscount>>(new Map());
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
 
   useEffect(() => {
     const fetchDiscountedProducts = async () => {
@@ -45,27 +48,41 @@ const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
         return;
       }
 
+      const now = Date.now();
+      const shouldRefetch = now - lastFetchTime > CACHE_DURATION;
+
       try {
         const productsPromises = wishlistState.items.map(async (item) => {
+          // Check cache first
+          const cached = cachedProducts.get(item._id);
+          if (cached && !shouldRefetch) {
+            return cached;
+          }
+
           try {
             const res = await fetch(`${backendUrl}/api/products/${item._id}`);
             if (res.ok) {
               const productData = await res.json();
-              return {
+              const productWithDiscount = {
                 ...item,
                 discountInfo: productData.discountInfo
               } as ProductWithDiscount;
+              
+              // Update cache
+              setCachedProducts(prev => new Map(prev).set(item._id, productWithDiscount));
+              return productWithDiscount;
             }
           } catch (error) {
-            console.error(`Error fetching product ${item._id}:`, error);
+            // Silent error - use cached if available
+            if (cached) return cached;
           }
           return item as ProductWithDiscount;
         });
 
         const products = await Promise.all(productsPromises);
         setProductsWithDiscounts(products);
+        setLastFetchTime(now);
       } catch (error) {
-        console.error('Error fetching discounts:', error);
         setProductsWithDiscounts(wishlistState.items as ProductWithDiscount[]);
       } finally {
         setLoading(false);
@@ -75,7 +92,7 @@ const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
     if (isOpen) {
       fetchDiscountedProducts();
     }
-  }, [wishlistState.items, backendUrl, isOpen]);
+  }, [wishlistState.items, backendUrl, isOpen, cachedProducts, lastFetchTime]);
 
   const removeFromWishlist = (id: string) => {
     wishlistDispatch({ type: 'REMOVE_ITEM', payload: id });

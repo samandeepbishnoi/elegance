@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
-import { useDiscount } from '../context/DiscountBannerContext';
+import { useDiscountBanner } from '../context/DiscountBannerContext';
 
 interface Discount {
   _id: string;
@@ -18,7 +18,7 @@ const DiscountBanner: React.FC = () => {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const { setHasActiveDiscounts } = useDiscount();
+  const { setHasActiveDiscounts } = useDiscountBanner();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
@@ -27,22 +27,17 @@ const DiscountBanner: React.FC = () => {
       try {
         // Fetch all active discounts (not expired)
         const response = await fetch(`${backendUrl}/api/discounts?isActive=true&includeExpired=false`);
-        console.log('Discount API Response Status:', response.status);
         
         if (response.ok) {
           const data = await response.json();
-          console.log('Fetched discounts:', data);
-          console.log('Number of active discounts:', data.length);
           
           // Show all active discounts (global, category, and product-specific)
           setDiscounts(data);
           setHasActiveDiscounts(data.length > 0);
         } else {
-          console.error('Failed to fetch discounts:', response.statusText);
           setHasActiveDiscounts(false);
         }
       } catch (error) {
-        console.error('Error fetching discounts:', error);
         setHasActiveDiscounts(false);
       }
     };

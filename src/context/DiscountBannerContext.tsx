@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-interface DiscountContextType {
+interface DiscountBannerContextType {
   hasActiveDiscounts: boolean;
   setHasActiveDiscounts: (value: boolean) => void;
   refreshDiscounts: () => void;
 }
 
-const DiscountContext = createContext<DiscountContextType | undefined>(undefined);
+const DiscountBannerContext = createContext<DiscountBannerContextType | undefined>(undefined);
 
-export const DiscountProvider = ({ children }: { children: ReactNode }) => {
+export const DiscountBannerProvider = ({ children }: { children: ReactNode }) => {
   const [hasActiveDiscounts, setHasActiveDiscounts] = useState(false);
 
   const refreshDiscounts = () => {
@@ -19,16 +19,16 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
   // No need for SSE subscription here - page will auto-refresh on discount updates
 
   return (
-    <DiscountContext.Provider value={{ hasActiveDiscounts, setHasActiveDiscounts, refreshDiscounts }}>
+    <DiscountBannerContext.Provider value={{ hasActiveDiscounts, setHasActiveDiscounts, refreshDiscounts }}>
       {children}
-    </DiscountContext.Provider>
+    </DiscountBannerContext.Provider>
   );
 };
 
-export const useDiscount = () => {
-  const context = useContext(DiscountContext);
+export const useDiscountBanner = () => {
+  const context = useContext(DiscountBannerContext);
   if (!context) {
-    throw new Error('useDiscount must be used within DiscountProvider');
+    throw new Error('useDiscountBanner must be used within DiscountBannerProvider');
   }
   return context;
 };

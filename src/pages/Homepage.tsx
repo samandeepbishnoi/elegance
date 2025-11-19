@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductFilters from '../components/ProductFilters';
+import { ProductGridSkeleton } from '../components/SkeletonLoaders';
 import { Sparkles, SlidersHorizontal, X, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Fuse from 'fuse.js';
@@ -128,13 +129,19 @@ const Homepage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 bg-gold-200/30 dark:bg-gold-500/10 rounded-full blur-xl animate-pulse"></div>
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-gold-200 dark:border-gray-700 border-t-gold-500 relative"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gold-50/30 dark:from-gray-900 dark:to-gray-950">
+        {/* Hero Section Skeleton */}
+        <div className="relative bg-gradient-to-r from-gold-500/10 via-gold-400/5 to-transparent dark:from-gold-900/20 dark:via-gold-800/10 py-12 sm:py-20">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+            <div className="animate-pulse">
+              <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-2/3 mx-auto mb-4"></div>
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2 mx-auto"></div>
+            </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">Loading collection...</p>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <ProductGridSkeleton count={8} />
         </div>
       </div>
     );
