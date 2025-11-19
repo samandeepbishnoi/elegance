@@ -53,8 +53,18 @@ interface Order {
   refundId?: string;
   refundAmount?: number;
   refundStatus?: string;
+  refundInitiatedAt?: string;
+  cancelledBy?: string;
+  cancelReason?: string;
+  customCancelReason?: string;
   cancellationReason?: string;
   cancelledAt?: string;
+  paymentMethod?: string;
+  timeline?: Array<{
+    event: string;
+    date: string;
+    description?: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,14 +104,22 @@ const AdminOrderManagement: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
   const token = localStorage.getItem('adminToken');
 
   // Fetch orders
-  const fetchOrders = async () => {
+  const fetchOrders = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+      
+      console.log('🔄 Fetching orders from:', `${backendUrl}/api/payment/admin/orders`);
+      
       const response = await fetch(`${backendUrl}/api/payment/admin/orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,16 +129,27 @@ const AdminOrderManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch orders');
 
       const data = await response.json();
+      console.log('✅ Fetched orders:', data.orders?.length || 0);
+      console.log('   - Cancelled orders:', data.orders?.filter((o: Order) => o.orderStatus === 'cancelled').length || 0);
+      
       setOrders(data.orders || []);
       setFilteredOrders(data.orders || []);
+      
+      if (silent) {
+        toast.success('Orders refreshed!', {
+          duration: 2000,
+          position: 'top-right',
+        });
+      }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('❌ Error fetching orders:', error);
       toast.error('Failed to load orders', {
         duration: 4000,
         position: 'top-center',
       });
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -145,6 +174,15 @@ const AdminOrderManagement: React.FC = () => {
   useEffect(() => {
     fetchOrders();
     fetchStatistics();
+
+    // Auto-refresh every 30 seconds to catch customer cancellations
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing orders...');
+      fetchOrders(true); // Silent refresh
+      fetchStatistics();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Filter and search orders
@@ -285,6 +323,9 @@ const AdminOrderManagement: React.FC = () => {
     if (!confirm('Are you sure you want to initiate a refund for this order?')) return;
 
     try {
+      console.log('🚀 Initiating refund for order:', orderId);
+      console.log('📡 Backend URL:', `${backendUrl}/api/payment/admin/orders/${orderId}/refund`);
+      
       const response = await fetch(`${backendUrl}/api/payment/admin/orders/${orderId}/refund`, {
         method: 'POST',
         headers: {
@@ -293,21 +334,75 @@ const AdminOrderManagement: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to initiate refund');
+      console.log('📥 Response status:', response.status, response.statusText);
+      
+      const data = await response.json();
+      console.log('📦 Response data:', data);
 
-      await response.json();
-      toast.success('Refund initiated successfully!', {
+      if (!response.ok) {
+        console.error('❌ Backend error:', data);
+        throw new Error(data.message || 'Failed to initiate refund');
+      }
+
+      console.log('✅ Refund initiated successfully');
+      toast.success(data.message || 'Refund initiated successfully!', {
         duration: 3000,
         position: 'top-center',
       });
       fetchOrders();
       fetchStatistics();
     } catch (error: any) {
-      console.error('Error initiating refund:', error);
+      console.error('💥 Error initiating refund:', error);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Full error:', JSON.stringify(error, null, 2));
       toast.error(error.message || 'Failed to initiate refund', {
         duration: 4000,
         position: 'top-center',
       });
+    }
+  };
+
+  // Update refund status
+  const updateRefundStatus = async (orderId: string, newStatus: string) => {
+    try {
+      setUpdatingStatus(true);
+      const response = await fetch(`${backendUrl}/api/payment/admin/orders/${orderId}/refund-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ refundStatus: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update refund status');
+
+      await response.json();
+      
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) => (order._id === orderId ? { ...order, refundStatus: newStatus } : order))
+      );
+      
+      if (selectedOrder && selectedOrder._id === orderId) {
+        setSelectedOrder({ ...selectedOrder, refundStatus: newStatus });
+      }
+
+      toast.success('Refund status updated successfully!', {
+        duration: 3000,
+        position: 'top-center',
+      });
+      
+      // Refresh data to get updated timeline
+      fetchOrders();
+    } catch (error) {
+      console.error('Error updating refund status:', error);
+      toast.error('Failed to update refund status', {
+        duration: 4000,
+        position: 'top-center',
+      });
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -374,13 +469,14 @@ const AdminOrderManagement: React.FC = () => {
         </div>
         <button
           onClick={() => {
-            fetchOrders();
+            fetchOrders(true);
             fetchStatistics();
           }}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] transition-colors"
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <RefreshCw size={16} />
-          Refresh
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
@@ -834,22 +930,154 @@ const AdminOrderManagement: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Refund Information Box - Appears for all orders with refund status */}
+                {selectedOrder.refundStatus && selectedOrder.refundStatus !== 'none' && (
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl p-5 shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-yellow-500 dark:bg-yellow-600 flex items-center justify-center">
+                        <AlertCircle size={24} className="text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-yellow-900 dark:text-yellow-100 text-lg">
+                          Refund Status
+                        </h4>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          Payment gateway refund in progress
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white dark:bg-gray-800/50 rounded-lg p-3">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Current Status</p>
+                        <span className={`inline-block px-3 py-1.5 rounded-full text-sm font-bold ${
+                          selectedOrder.refundStatus === 'completed'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-200'
+                            : selectedOrder.refundStatus === 'processing'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200'
+                            : selectedOrder.refundStatus === 'pending' || selectedOrder.refundStatus === 'requested'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                        }`}>
+                          {selectedOrder.refundStatus.charAt(0).toUpperCase() + selectedOrder.refundStatus.slice(1)}
+                        </span>
+                      </div>
+
+                      {selectedOrder.refundAmount && (
+                        <div className="bg-white dark:bg-gray-800/50 rounded-lg p-3">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Refund Amount</p>
+                          <p className="text-xl font-bold text-gray-900 dark:text-white">
+                            ₹{selectedOrder.refundAmount.toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedOrder.refundId && (
+                        <div className="bg-white dark:bg-gray-800/50 rounded-lg p-3 md:col-span-2">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Payment Gateway Refund ID</p>
+                          <p className="text-gray-900 dark:text-white font-mono text-sm break-all">
+                            {selectedOrder.refundId}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedOrder.refundInitiatedAt && (
+                        <div className="bg-white dark:bg-gray-800/50 rounded-lg p-3 md:col-span-2">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1">Initiated At</p>
+                          <p className="text-gray-900 dark:text-white">
+                            {new Date(selectedOrder.refundInitiatedAt).toLocaleString('en-IN', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Refund Status Update Buttons */}
+                    {selectedOrder.refundStatus !== 'completed' && selectedOrder.refundStatus !== 'rejected' && (
+                      <div className="border-t border-yellow-200 dark:border-yellow-700 pt-4">
+                        <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium mb-2">Update Refund Status:</p>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => updateRefundStatus(selectedOrder._id, 'processing')}
+                            disabled={updatingStatus || selectedOrder.refundStatus === 'processing'}
+                            className="px-4 py-2 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+                          >
+                            Mark Processing
+                          </button>
+                          <button
+                            onClick={() => updateRefundStatus(selectedOrder._id, 'completed')}
+                            disabled={updatingStatus}
+                            className="px-4 py-2 text-sm font-semibold bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+                          >
+                            Mark Completed
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Undo Button for Completed Refunds */}
+                    {selectedOrder.refundStatus === 'completed' && (
+                      <div className="border-t border-yellow-200 dark:border-yellow-700 pt-4">
+                        <div className="flex items-start gap-3 bg-white dark:bg-gray-800/50 p-3 rounded-lg">
+                          <AlertCircle size={18} className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                              Accidental Completion?
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                              If this was marked completed by mistake, you can undo it.
+                            </p>
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to undo the completion? This will revert the refund status to "Processing" and change payment status back to "Success".')) {
+                                  updateRefundStatus(selectedOrder._id, 'processing');
+                                }
+                              }}
+                              disabled={updatingStatus}
+                              className="px-3 py-1.5 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                            >
+                              <RefreshCw size={14} />
+                              Undo Completion
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Cancellation Information (if order is cancelled) */}
-                {selectedOrder.orderStatus === 'cancelled' && selectedOrder.cancellationReason && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                {selectedOrder.orderStatus === 'cancelled' && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-4">
                     <h4 className="font-semibold text-red-900 dark:text-red-100 mb-3 flex items-center gap-2">
                       <XCircle size={20} className="text-red-600 dark:text-red-400" />
                       Cancellation Information
                     </h4>
                     <div className="space-y-3">
-                      <div>
-                        <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-1">
-                          Cancellation Reason
-                        </p>
-                        <p className="text-red-900 dark:text-red-100 bg-white dark:bg-red-900/30 px-3 py-2 rounded-lg">
-                          {selectedOrder.cancellationReason}
-                        </p>
-                      </div>
+                      {selectedOrder.cancelledBy && (
+                        <div>
+                          <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-1">
+                            Cancelled By
+                          </p>
+                          <p className="text-red-900 dark:text-red-100">
+                            {selectedOrder.cancelledBy === 'customer' ? 'Customer' : selectedOrder.cancelledBy === 'admin' ? 'Admin' : 'System'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {(selectedOrder.cancelReason || selectedOrder.customCancelReason || selectedOrder.cancellationReason) && (
+                        <div>
+                          <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-1">
+                            Cancellation Reason
+                          </p>
+                          <p className="text-red-900 dark:text-red-100 bg-white dark:bg-red-900/30 px-3 py-2 rounded-lg">
+                            {selectedOrder.customCancelReason || selectedOrder.cancelReason || selectedOrder.cancellationReason}
+                          </p>
+                        </div>
+                      )}
+                      
                       {selectedOrder.cancelledAt && (
                         <div>
                           <p className="text-sm text-red-600 dark:text-red-400 font-medium mb-1">
@@ -863,11 +1091,6 @@ const AdminOrderManagement: React.FC = () => {
                           </p>
                         </div>
                       )}
-                      <div className="pt-2 border-t border-red-200 dark:border-red-800">
-                        <p className="text-sm text-red-700 dark:text-red-300 italic">
-                          Status: Cancelled by Customer
-                        </p>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -938,25 +1161,28 @@ const AdminOrderManagement: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Refund Section */}
-                {selectedOrder.paymentStatus === 'success' &&
-                  selectedOrder.orderStatus !== 'cancelled' &&
-                  selectedOrder.orderStatus !== 'delivered' && (
-                    <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <AlertCircle size={20} className="text-orange-600" />
+                {/* Refund Initiation Section - Moved to Bottom */}
+                {selectedOrder.paymentStatus === 'success' && (
+                    <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-700 rounded-xl p-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
+                            <AlertCircle size={20} className="text-orange-600 dark:text-orange-400" />
                             Refund Management
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Initiate a refund for this order
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            You can initiate a refund for this order at any time (inventory issues, quality problems, customer requests, etc.)
+                          </p>
+                          <p className="text-xs text-orange-600 dark:text-orange-400 font-bold">
+                            Amount to refund: ₹{selectedOrder.finalAmount.toLocaleString()}
                           </p>
                         </div>
                         <button
                           onClick={() => initiateRefund(selectedOrder._id)}
-                          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                          disabled={updatingStatus}
+                          className="px-5 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:from-orange-700 hover:to-red-700 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-lg"
                         >
+                          <DollarSign size={20} />
                           Initiate Refund
                         </button>
                       </div>

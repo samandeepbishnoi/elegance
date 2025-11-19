@@ -1,8 +1,32 @@
 # 💎 Parika Jewels - Wholesale Imitation Jewellery Platform
 
-A complete full-stack wholesale jewellery e-commerce solution built with modern web technologies, featuring a luxurious customer experience with AI-powered recommendations, advanced discount system, WhatsApp checkout, and a comprehensive admin dashboard for inventory and promotions management.
+This README is written so you can understand the project **as if it were a project report**, without reading the entire codebase.
+
+It explains:
+- What the system does (business problem and goals)
+- How the architecture is organized (frontend, backend, database)
+- What the main modules and data models are
+- How the **order, payment, refund, and WhatsApp flows** work end-to-end
+- How the admin panel controls discounts, coupons, store status, and refunds
+
+---
+
+## 🧩 Project Overview
+
+**Project Name**: Parika Jewels – Wholesale Imitation Jewellery Platform  
+**Domain**: E‑commerce (B2B wholesale imitation jewellery)  
+**Users**: Retailers / bulk buyers (customers) and store administrators (admins)  
+
+**Goal**: Build a complete online wholesale jewellery store with:
+- Beautiful, premium **shopping experience** for buyers
+- **AI-powered assistance** and smart product discovery
+- Advanced **discount and coupon** engine
+- Dual checkout options (**online payment** and **WhatsApp orders**)
+- Powerful **admin dashboard** for products, promotions, orders, payments, and refunds
 
 **Business Model**: Premium and exclusive imitation jewellery wholesaler serving retailers and bulk buyers worldwide.
+
+---
 
 ## ✨ Key Highlights
 
@@ -17,7 +41,36 @@ A complete full-stack wholesale jewellery e-commerce solution built with modern 
 - 🌙 **Dark Mode** - Seamless theme switching with elegant gold/brown color palette
 - 📊 **Analytics Dashboard** - Track views, manage inventory, monitor discount effectiveness
 
-## 🌟 Features
+---
+
+## �️ System Architecture (High Level)
+
+The project is a classic **MERN-style** (React + Node + MongoDB) full-stack application:
+
+- **Frontend** (React + TypeScript, Vite, Tailwind)
+   - Located in `src/`
+   - Implements customer UI, admin dashboard, AI assistant, and all order/payment/refund screens.
+   - Uses **React Context** for global state (auth, cart, wishlist, discounts, theme, store status).
+
+- **Backend** (Node.js + Express + Mongoose)
+   - Located in `backend/`
+   - Exposes REST APIs for products, discounts, coupons, orders, payments, refunds, admin management, and store settings.
+   - Integrates with **MongoDB** via Mongoose for persistence.
+   - Integrates with a payment gateway (Razorpay currently) for online payments and refunds.
+   - Uses **Server-Sent Events (SSE)** for real-time updates (store status, discounts).
+
+- **Database** (MongoDB)
+   - Stores product catalog, discounts, coupons, orders, carts, wishlist data, store settings, and admin users.
+   - Key models: `Product`, `Discount`, `Coupon`, `Order`, `StoreSettings`, `UserProfile`, `Cart`, `Wishlist`, `Address`.
+
+Communication flow:
+- Frontend calls backend REST APIs via `src/utils/api.ts` using a base URL (`VITE_BACKEND_URL`).
+- Backend validates, executes business logic, talks to MongoDB and payment gateway, and returns JSON responses.
+- Real-time features (like store online/offline banner) use SSE from backend to frontend.
+
+---
+
+## �🌟 Features
 
 ### 🛍️ Customer Experience
 
@@ -75,7 +128,7 @@ A complete full-stack wholesale jewellery e-commerce solution built with modern 
 - **Real-time Indicators**: Live store status and activity indicators
 - **Optimized Mobile View**: 2-column grids, smaller chat icon, touch-optimized controls
 
-### 🔐 Admin Features
+### 🔐 Admin Features (Summary)
 
 #### Authentication & Access
 - **Secure Authentication**: JWT-based login system with role management
@@ -113,6 +166,113 @@ A complete full-stack wholesale jewellery e-commerce solution built with modern 
 - **Status Banner**: Visual indicator when store is offline
 - **Dashboard Analytics**: Overview of products, inventory, views, and sales
 - **Search & Filter**: Advanced filtering in admin panel
+
+---
+
+## 🔄 Core Application Flows
+
+This section summarizes the **end-to-end flows** that matter most for a project report.
+
+### 1. Customer Browsing & Discovery
+
+1. Customer opens the landing page (`Landing.tsx`).
+2. Home/landing uses components like `CategoryHighlights`, `ShopByOccasion`, `TrendingProducts`, and `SpecialOffersCarousel` to guide the user.
+3. Product listing (`Homepage.tsx`) shows products with filters (`ProductFilters.tsx`) and smart search (`SmartSearch.tsx`).
+4. Product details (`ProductDetail.tsx`) show description, price, discounts, and **AI-based recommendations** (`RecommendedProducts.tsx`).
+
+### 2. Cart, Wishlist & Discounts
+
+1. User adds items to cart/wishlist using `CartContext` and `WishlistContext`.
+2. Cart can be viewed as a **drawer** (`CartDrawer.tsx`) or separate **Cart page** (`Cart.tsx`).
+3. Discount engine:
+   - Product discounts are calculated using backend utilities (e.g. `discountCalculator.js`).
+   - Coupons are applied at checkout, with validation via `/api/coupons/validate`.
+4. The UI shows **stacked savings** (product discount + coupon) in the cart and checkout UI.
+
+### 3. Checkout & Payment Methods
+
+The system supports **two main checkout paths**:
+
+1. **Online Payment (Payment Gateway – currently Razorpay)**
+   - Frontend calls backend to create a payment order (`/api/payment/create-order`).
+   - Payment is completed via the gateway’s UI.
+   - Backend verifies payment (`/api/payment/verify`) and creates a persistent `Order` document.
+   - On success, `paymentStatus = success`, and the user is redirected to a success/order tracking page (`PaymentSuccess.tsx`, `Orders.tsx`, `OrderDetail.tsx`).
+
+2. **WhatsApp Checkout**
+   - Instead of online payment, user selects **WhatsApp order** at checkout.
+   - Frontend builds a formatted message with all order details (items, discounts, coupon savings, customer info).
+   - User is redirected to WhatsApp chat with the business number (`VITE_WHATSAPP_NUMBER`) and pre‑filled message.
+   - Order is then processed manually by the business via WhatsApp.
+
+### 4. Order Management (Customer Side)
+
+- Customers can view all their orders via appropriate pages (`Orders.tsx`, `OrderDetail.tsx`).
+- Orders show:
+  - Items, prices, discounts, and totals.
+  - Payment method (online / WhatsApp / COD) and payment status.
+  - Order status (pending, confirmed, shipped, delivered, cancelled).
+  - For cancelled/refunded orders, the relevant refund/cancellation information.
+
+### 5. Admin Order Management, Refunds & Auto‑Cancel
+
+Admin order management is implemented primarily in `AdminOrderManagement.tsx` and backend `paymentController.js`.
+
+**Key points:**
+
+- Admin can list/filter all orders via `/api/payment/admin/orders`.
+- For each order, admin can:
+  - Update order status (confirmed, processing, shipped, delivered, cancelled).
+  - View payment info (payment method, payment ID, transaction status).
+  - Manage refunds for **online payments**.
+
+**Refund flow (admin perspective):**
+
+1. **Eligibility**
+   - Order must have `paymentStatus = success`.
+   - Payment method must be an online gateway (currently `razorpay`), **not** COD or WhatsApp.
+   - No refund must be active yet (`refundStatus = 'none'` or unset).
+
+2. **Initiating Refund**
+   - Admin opens order details and scrolls to the bottom **Refund Management** section.
+   - Clicks **“Initiate Refund”**.
+   - Frontend calls `POST /api/payment/admin/orders/:id/refund`.
+
+3. **Backend on Refund Initiation**
+   - Validates order and payment.
+   - Calls payment gateway refund API.
+   - Sets:
+     - `refundStatus = 'pending'`.
+     - `refundAmount`, `refundReason`, `refundInitiatedAt`.
+     - `refundId` if gateway returns one.
+     - `orderStatus = 'cancelled'` **automatically**.
+   - Records events in `timeline`.
+   - Responds with updated order info.
+
+4. **Refund Status Lifecycle**
+   - Admin sees a **Refund Information** box when `refundStatus` is not `none`.
+   - From this box, admin can:
+     - Mark refund as **Processing**.
+     - Mark refund as **Completed**.
+     - Mark as **Rejected** if applicable (depending on UI/buttons configured).
+
+5. **Undo Completed Refund**
+   - If admin accidentally marks a refund as **Completed**, they can click an **Undo** button.
+   - Backend transitions `refundStatus` from `completed` back to `processing` and restores `paymentStatus` from `refunded` back to `success`.
+   - This protects against misclicks and keeps accounting accurate.
+
+6. **Customer View After Refund Initiation**
+   - Order appears as **Cancelled**.
+   - Refund status is visible as **pending/processing/completed** depending on admin updates.
+   - Exact customer‑facing wording can be customized in the UI.
+
+---
+
+### 🔐 Admin Features (Detailed)
+
+> This section adds more technical detail so you can describe the admin module in a project report.
+
+#### Authentication & Access
 
 ### 🎨 Design & UX
 
@@ -243,6 +403,141 @@ jewelry-catalog-website/
 ├── SPA_ROUTING_FIX.md       # Deployment routing documentation
 └── README.md                 # This file
 ```
+
+---
+
+## 🗄️ Data Model Overview (MongoDB)
+
+This section summarizes the **most important collections and fields** so you can describe the database design in your project report.
+
+> Note: Exact schemas live in `backend/models/*.js`. This is a conceptual summary.
+
+### 1. Order
+
+**Collection**: `orders` (model in `backend/models/Order.js`)
+
+Stores each placed order, including payment, refund, and cancellation info.
+
+- **Customer & Contact**
+   - `name`, `email`, `phone`
+   - `address` details (street, city, state, pincode, country)
+
+- **Items**
+   - Array of products with:
+      - `productId`
+      - `name`
+      - `price`
+      - `quantity`
+      - possibly `discountInfo`
+
+- **Pricing & Discounts**
+   - `subTotal` – raw total before discounts
+   - `discountAmount` – total from product‑level discounts
+   - `couponCode` – applied coupon if any
+   - `couponDiscount` – discount from coupon
+   - `totalAmount` – final amount charged to customer
+
+- **Payment Information**
+   - `paymentMethod` – e.g. `razorpay`, `whatsapp`, `cod`
+   - `paymentStatus` – `pending | success | failed | refunded | cancelled`
+   - `razorpayOrderId`, `razorpayPaymentId`, `razorpaySignature` – gateway references (for online payments)
+
+- **Order Status & Timeline**
+   - `orderStatus` – `pending | processing | confirmed | shipped | delivered | cancelled`
+   - `createdAt`, `updatedAt`
+   - `timeline` – array of status change events with `status`, `message`, and timestamp (used mainly for auditing/logs)
+
+- **Cancellation Fields**
+   - `cancelledBy` – customer or admin
+   - `cancelReason`, `customCancelReason` / `cancellationReason`
+   - `cancelledAt`
+
+- **Refund Fields**
+   - `refundStatus` – `none | pending | requested | processing | completed | rejected`
+   - `refundId` – ID from payment gateway
+   - `refundAmount` – amount to be refunded
+   - `refundReason` – why refund was initiated
+   - `refundInitiatedAt` – timestamp when admin initiated refund
+   - `refundDate` – when refund was completed (if set)
+   - `refundError` – stores any payment gateway error for manual handling
+
+This model is central to explaining **payment, cancellation, and refund logic** in your report.
+
+### 2. Product
+
+**Collection**: `products` (model not fully shown in this README but exists in `backend/models/Product.js` or similar)
+
+Typical fields:
+- `name`, `description`, `category`, `tags`
+- `price`, `images`, `stock`
+- `viewCount` for analytics
+- References/relations to discounts via category/tags
+
+### 3. Discount
+
+**Collection**: `discounts` (`backend/models/Discount.js`)
+
+Represents automatic product‑level promotions.
+
+- `name` – e.g. "Summer Sale 20% Off"
+- `discountType` – `percentage | flat | buyXGetY`
+- `discountValue` – amount/percentage
+- `requiredQuantity` / `freeQuantity` for Buy X Get Y
+- `applicableCategories` / `applicableProducts`
+- `startDate`, `endDate`
+- `isActive`
+
+### 4. Coupon
+
+**Collection**: `coupons` (`backend/models/Coupon.js`)
+
+Represents manual coupon codes entered at checkout.
+
+- `code` – coupon string (e.g. `WELCOME10`)
+- `discountType` – `percentage | flat`
+- `discountValue`
+- `minCartValue`
+- `maxUsage` / `usageCount`
+- `applicableCategories`
+- `expiresAt`
+- `isActive`
+
+### 5. StoreSettings
+
+**Collection**: `storesettings` (`backend/models/StoreSettings.js`)
+
+Controls overall store configuration.
+
+- `isStoreOpen` – whether the store is online/offline
+- `announcementBanner` – message shown to customers
+- Other flags for controlling behaviour (e.g. maintenance mode)
+
+### 6. User/Admin & Profiles
+
+**Collections**: `admins`, `userprofiles` (e.g. `backend/models/UserProfile.js`)
+
+- **Admin**
+   - `email`, `passwordHash`
+   - `role` – main admin vs standard admin
+   - `status` – pending/approved for registration workflow
+
+- **UserProfile** (if used for customers)
+   - `name`, `email`, `phone`
+   - Saved `addresses` and preferences
+
+### 7. Cart, Wishlist, Address
+
+- **Cart** (`backend/models/Cart.js`)
+   - Temporary cart store for customers (can be tied to user or session ID).
+   - Items, quantities, and intermediate totals.
+
+- **Wishlist** (`backend/models/Wishlist.js`)
+   - Saved products for later purchase.
+
+- **Address** (`backend/models/Address.js`)
+   - Saved customer addresses, reusable at checkout.
+
+You can use these summaries directly in a **Database Design / ER‑diagram explanation** section of your project report.
 
 ## 🛠️ Installation & Setup
 
@@ -391,39 +686,120 @@ Create custom coupon codes with flexible rules:
 - **Analytics**: Track usage and effectiveness of promotions
 - **Bulk Operations**: Manage multiple campaigns efficiently
 
-## � Razorpay Payment Integration
+## 💳 Online Payments & Refund System
 
-Complete payment gateway integration with Razorpay for secure online payments.
+This project includes a complete online payment and refund system with a payment gateway (Razorpay in the current implementation, but the flow is designed to be gateway-agnostic at a business level).
 
-### Payment Features
+### Customer Payment Experience
+- **Secure Online Payments**: Pay for orders using the configured payment gateway.
+- **Multiple Options (via gateway)**: Cards, UPI, net banking, wallets (subject to gateway support).
+- **Instant Confirmation**: Orders are created and marked as **paid** immediately after successful payment.
+- **WhatsApp or COD Alternatives**: Customers can also place orders via WhatsApp or Cash-on-Delivery when enabled.
+
+### Refund & Cancellation – Customer View
+1. **Successful Online Payment**
+    - Order is created with `paymentStatus = success` and an appropriate `orderStatus` (e.g., confirmed).
+2. **Admin-Initiated Refund**
+    - Admin can initiate a refund from the order management screen for **any successful online payment** (non-COD, non-WhatsApp), even if the order is not yet cancelled.
+    - Typical reasons: out-of-stock, quality issues, incorrect item, or other business scenarios.
+3. **Automatic Order Cancellation on Refund Initiation**
+    - As soon as the admin initiates a refund, the backend will:
+       - Trigger a refund request with the payment gateway (when possible).
+       - Set `refundStatus = pending`.
+       - Set `orderStatus = cancelled` **automatically** (no separate manual cancel needed).
+       - Store `refundAmount`, `refundReason`, `refundInitiatedAt`, and a `refundId` if returned by the gateway.
+    - The customer now sees the order as **Cancelled** with an associated **Refund Pending** status.
+4. **Refund Status Lifecycle**
+    - Refunds move through clear lifecycle states:
+       - `none` → `pending` → `processing` → `completed` (or `rejected` when needed).
+    - A dedicated **Refund Information** box in the admin panel reflects this state and ensures the support team knows exactly what is happening.
+5. **Completed Refund**
+    - When the refund is completed, `refundStatus = completed` and `paymentStatus` may be updated to reflect a refunded state.
+    - The customer can be informed that the order was cancelled and refunded via your preferred channel (WhatsApp, email, etc.).
+
+### Admin Refund Controls
+
+The admin order management screen provides a complete toolbox for handling refunds safely:
+
+- **Initiate Refund (Admin Power)**
+   - Visible when:
+      - Payment was successfully made through the online gateway (non-COD / non-WhatsApp), and
+      - A refund has not already been started for this order.
+   - Located at the **bottom** of the order detail modal in the **Refund Management** section.
+   - On click, the backend:
+      - Validates that the order is paid and eligible.
+      - Initiates the gateway refund (or marks it as pending if the gateway call fails and needs manual handling).
+      - Automatically cancels the order and logs events in the order timeline.
+
+- **Refund Status Box (Admin View)**
+   - Shows up whenever `refundStatus` is not `none`.
+   - Displays:
+      - Refund status badge (`pending`, `processing`, `completed`, `rejected`).
+      - Refund amount and refund ID.
+      - Refund initiation date.
+
+- **Manual Status Updates**
+   - Admin can update the refund status through dedicated controls:
+      - Mark as **Processing** when the refund is being handled manually or waiting on the gateway.
+      - Mark as **Completed** after confirming the refund has been successfully processed.
+
+- **Undo Completed Refund (Safety Net)**
+   - If a refund is accidentally marked as **Completed**, the admin can **undo** this action:
+      - Changes refund status from `completed` back to `processing`.
+      - Restores `paymentStatus` from `refunded` back to `success` so records remain accurate.
+   - This provides an extra layer of safety against misclicks.
+
+- **Automatic Timeline Logging (Backend)**
+   - Key refund events are recorded in the order timeline (used internally and for auditing):
+      - Refund initiated.
+      - Refund initiated (manual processing required) when the payment gateway fails but refund is still pending.
+      - Order cancelled due to refund.
+
+### Admin Order Management – Quick Summary
+
+In addition to the standard features already described in this README (status updates, analytics, filters), the admin order management now supports:
+
+- Admin-initiated refunds for **any successful online payment**.
+- Automatic order cancellation when a refund is initiated.
+- A clear, dedicated refund information box in the order details.
+- Granular refund status control (`pending`, `processing`, `completed`, `rejected`).
+- Undo functionality for mistakenly marked **completed** refunds.
+- Validation and error messaging when a refund cannot be initiated (e.g., COD/WhatsApp orders, missing payment ID, already-refunded orders).
+
+> Internally, the current implementation uses Razorpay as the payment gateway, but error messages and flows are written generically as a "payment gateway" to make future provider changes easier.
+
+### Gateway-Specific Details (Current: Razorpay)
+
+The following sub-section documents the Razorpay-specific pieces currently wired into the project.
+
+#### Payment Features
 - **🔒 Secure Payments**: Industry-standard encryption and security
 - **💳 Multiple Payment Options**: Credit/Debit cards, UPI, Net Banking, Wallets
-- **�📱 Mobile Optimized**: Seamless checkout on all devices
+- **📱 Mobile Optimized**: Seamless checkout on all devices
 - **⚡ Instant Confirmation**: Immediate order confirmation after payment
-- **🔄 Auto Refunds**: Automatic refund processing for cancellations
 - **📊 Payment Analytics**: Track revenue, successful/failed payments
 - **🎯 Smart Routing**: Dual payment options (Razorpay + WhatsApp)
 
-### Customer Experience
-1. **Checkout Flow**: Select payment method (Razorpay or WhatsApp)
-2. **Payment Options**: Choose from cards, UPI, net banking, wallets
-3. **Instant Verification**: Secure signature verification
-4. **Success Page**: Animated confetti celebration with order details
-5. **Order Tracking**: View all orders in "My Orders" section
-6. **Cancel & Refund**: Cancel orders within 24 hours with automatic refund
+### Customer Experience (Razorpay)
+1. **Checkout Flow**: Select payment method (Online via Razorpay) or WhatsApp/COD if enabled.
+2. **Payment Options**: Choose from cards, UPI, net banking, wallets.
+3. **Instant Verification**: Secure signature verification on the backend.
+4. **Success Page**: Animated confetti celebration with order details.
+5. **Order Tracking**: View all orders in the orders section.
+6. **Cancel & Refund**: Orders paid online can be cancelled/refunded by the admin using the unified refund flow described above.
 
 ### Order Management
 - **Order History**: Complete list with filters (paid, pending, cancelled, refunded)
 - **Order Details**: Comprehensive view with payment info and delivery address
-- **Order Cancellation**: 24-hour cancellation window with instant refund
-- **Order Status**: Real-time tracking (Confirmed → Processing → Shipped → Delivered)
+- **Order Cancellation**: Admin-managed cancellation with integrated refund initiation for online payments
+- **Order Status**: Real-time tracking (Confirmed → Processing → Shipped → Delivered → Cancelled)
 - **WhatsApp Support**: One-click contact for order queries
 
 ### Admin Features
 - **Order Dashboard**: View all orders with advanced filters
 - **Payment Analytics**: Revenue tracking, success/failure rates
-- **Status Management**: Update order status (processing, shipped, delivered)
-- **Refund Processing**: Manual refund initiation for special cases
+- **Status Management**: Update order status (processing, shipped, delivered, cancelled)
+- **Refund Management**: Full refund lifecycle (initiate, pending, processing, completed, rejected, undo)
 - **Order Search**: Search by order number, customer name, email
 
 ### Test Payment Credentials

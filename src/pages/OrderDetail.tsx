@@ -33,11 +33,20 @@ interface Order {
   deliveredAt?: string;
   trackingNumber?: string;
   canCancel?: boolean;
+  cancelledBy?: string;
+  cancelReason?: string;
+  customCancelReason?: string;
   cancellationReason?: string;
   cancelledAt?: string;
   refundStatus?: string;
   refundId?: string;
   refundAmount?: number;
+  refundDate?: string;
+  timeline?: Array<{
+    event: string;
+    date: string;
+    description?: string;
+  }>;
 }
 
 const OrderDetail: React.FC = () => {
@@ -222,14 +231,36 @@ Please assist me with my order.
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
-            {order.canCancel && order.paymentStatus !== 'cancelled' && (
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-              >
-                Cancel Order
-              </button>
+            
+            {/* Cancel Order Button */}
+            {order.orderStatus !== 'cancelled' && (
+              <div className="relative group">
+                <button
+                  onClick={() => order.canCancel && setShowCancelModal(true)}
+                  disabled={!order.canCancel}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${
+                    order.canCancel
+                      ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer'
+                      : 'bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  }`}
+                  title={!order.canCancel ? 'This order can no longer be cancelled' : 'Cancel this order'}
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel Order
+                </button>
+                
+                {/* Tooltip for disabled button */}
+                {!order.canCancel && (
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                    This order can no longer be cancelled
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                      <div className="border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
+            
             <button
               onClick={contactWhatsApp}
               className="px-3 py-1.5 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors flex items-center gap-2"
@@ -281,7 +312,138 @@ Please assist me with my order.
               )}
             </motion.div>
 
-            {/* Cancellation/Refund Info - Removed as it's already shown in Order Status section */}
+            {/* Cancellation/Refund Info */}
+            {order.orderStatus === 'cancelled' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="bg-red-100 dark:bg-red-900/40 rounded-full p-2">
+                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-red-900 dark:text-red-200 mb-2">
+                      Order Cancelled
+                    </h3>
+                    
+                    <div className="space-y-2 text-sm text-red-800 dark:text-red-300">
+                      {order.cancelledBy && (
+                        <p>
+                          <span className="font-medium">Cancelled By:</span>{' '}
+                          {order.cancelledBy === 'customer' ? 'Customer' : order.cancelledBy === 'admin' ? 'Admin' : 'System'}
+                        </p>
+                      )}
+                      
+                      {(order.cancelReason || order.customCancelReason || order.cancellationReason) && (
+                        <p>
+                          <span className="font-medium">Reason:</span>{' '}
+                          {order.customCancelReason || order.cancelReason || order.cancellationReason}
+                        </p>
+                      )}
+                      
+                      {order.cancelledAt && (
+                        <p>
+                          <span className="font-medium">Cancelled On:</span>{' '}
+                          {new Date(order.cancelledAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+
+                      {/* WhatsApp Contact Button */}
+                      <div className="mt-4 pt-3 border-t border-red-200 dark:border-red-700">
+                        <button
+                          onClick={() => {
+                            const refundText = order.paymentMethod === 'online' ? '\n\nI need information about my refund.' : '';
+                            const cancelMessage = `Hello! I have cancelled my order and need assistance.
+
+Order Number: ${order.orderNumber || `ELG-${order._id.slice(-8).toUpperCase()}`}
+Cancelled On: ${order.cancelledAt ? new Date(order.cancelledAt).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+}) : 'Recently'}
+Reason: ${order.customCancelReason || order.cancelReason || order.cancellationReason || 'N/A'}${refundText}
+
+Please assist me with this cancellation.`;
+                            
+                            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(cancelMessage)}`;
+                            window.open(whatsappUrl, '_blank');
+                          }}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 group"
+                        >
+                          <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                          Contact Admin on WhatsApp
+                        </button>
+                        <p className="text-xs text-center text-red-700 dark:text-red-400 mt-2">
+                          Get instant support for your cancelled order
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Refund Information */}
+                    {order.refundStatus && order.refundStatus !== 'none' && (
+                      <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-700">
+                        <p className="font-semibold mb-2 text-sm text-red-800 dark:text-red-300">Refund Information</p>
+                        <div className="space-y-1 text-sm text-red-800 dark:text-red-300">
+                          <p>
+                            <span className="font-medium">Status:</span>{' '}
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              order.refundStatus === 'completed' 
+                                ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
+                                : order.refundStatus === 'processing'
+                                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300'
+                                : order.refundStatus === 'pending' || order.refundStatus === 'requested'
+                                ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                            }`}>
+                              {order.refundStatus.charAt(0).toUpperCase() + order.refundStatus.slice(1)}
+                            </span>
+                          </p>
+                          {order.refundAmount && (
+                            <p>
+                              <span className="font-medium">Amount:</span> ₹{order.refundAmount.toLocaleString()}
+                            </p>
+                          )}
+                          {order.refundId && (
+                            <p>
+                              <span className="font-medium">Refund ID:</span>{' '}
+                              <span className="font-mono text-xs">{order.refundId}</span>
+                            </p>
+                          )}
+                          {order.refundDate && (
+                            <p>
+                              <span className="font-medium">Refund Date:</span>{' '}
+                              {new Date(order.refundDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          )}
+                        </div>
+                        <p className="mt-2 text-xs text-red-700 dark:text-red-400">
+                          {order.refundStatus === 'completed' 
+                            ? 'Your refund has been processed and should reflect in your account within 2-3 business days.'
+                            : order.refundStatus === 'processing'
+                            ? 'Your refund is being processed and will be completed within 5-7 business days.'
+                            : 'Your refund request is under review. We will process it shortly.'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Order Items */}
             <motion.div

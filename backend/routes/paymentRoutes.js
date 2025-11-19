@@ -19,6 +19,7 @@ router.post('/orders/:id/cancel', paymentController.cancelOrder);
 router.get('/admin/orders', authenticateMainAdmin, paymentController.getAllOrders);
 router.get('/admin/statistics', authenticateMainAdmin, paymentController.getOrderStatistics);
 router.put('/admin/orders/:id/status', authenticateMainAdmin, paymentController.updateOrderStatus);
+router.put('/admin/orders/:id/refund-status', authenticateMainAdmin, paymentController.updateRefundStatus);
 router.post('/admin/orders/:id/refund', authenticateMainAdmin, paymentController.processRefund);
 
 export default router;

@@ -2,6 +2,13 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Order from '../models/Order.js';
 import Coupon from '../models/Coupon.js';
+import {
+  sendAdminCancellationPrepaidNotification,
+  sendAdminCancellationCODNotification,
+  sendCustomerCancellationPrepaidConfirmation,
+  sendCustomerCancellationCODConfirmation,
+  sendRefundStatusUpdate
+} from '../services/whatsappService.js';
 // Note: Product model not currently used - inventory managed on frontend
 
 // Initialize Razorpay instance
@@ -426,9 +433,9 @@ export const markPaymentFailed = async (req, res) => {
 export const cancelOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const { reason } = req.body;
+    const { reason, customReason, cancelledBy = 'customer' } = req.body;
 
-    console.log('Cancel order request:', { orderId: id, reason });
+    console.log('Cancel order request:', { orderId: id, reason, customReason, cancelledBy });
 
     const order = await Order.findById(id);
     if (!order) {
@@ -445,7 +452,8 @@ export const cancelOrder = async (req, res) => {
       orderStatus: order.orderStatus,
       canCancel: order.canCancel,
       createdAt: order.createdAt,
-      paymentStatus: order.paymentStatus
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod
     });
 
     // Check if order can be cancelled
@@ -457,15 +465,36 @@ export const cancelOrder = async (req, res) => {
       });
       return res.status(400).json({
         success: false,
-        message: 'Order cannot be cancelled. Either it has been shipped or 24 hours have passed.'
+        message: 'Order cannot be cancelled. Either it has been shipped, delivered, or the cancellation window has expired.'
+      });
+    }
+
+    // Validate reason
+    if (!reason && !customReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a cancellation reason'
       });
     }
 
     // Update order status
     order.orderStatus = 'cancelled';
-    order.cancellationReason = reason || 'Customer requested cancellation';
+    order.cancelledBy = cancelledBy;
+    order.cancelReason = reason;
+    order.customCancelReason = customReason;
+    order.cancellationReason = customReason || reason; // For backward compatibility
     order.cancelledAt = new Date();
     order.canCancel = false;
+
+    // Add timeline entry
+    if (!order.timeline) {
+      order.timeline = [];
+    }
+    order.timeline.push({
+      event: 'Order Cancelled',
+      date: new Date(),
+      description: `Order cancelled by ${cancelledBy}. Reason: ${customReason || reason}`
+    });
 
     // Note: Product inventory restoration skipped - inventory managed on frontend
     // If you implement backend Product model, uncomment below:
@@ -488,30 +517,100 @@ export const cancelOrder = async (req, res) => {
       );
     }
 
-    // Initiate refund if payment was successful
-    if (order.paymentStatus === 'success' && order.razorpayPaymentId) {
+    const isPrepaid = order.paymentMethod === 'razorpay' && order.paymentStatus === 'success';
+    const isCOD = order.paymentMethod === 'cod' || order.paymentMethod === 'whatsapp';
+
+    // Initiate refund if payment was successful (prepaid)
+    if (isPrepaid && order.razorpayPaymentId) {
       try {
         const refund = await razorpay.payments.refund(order.razorpayPaymentId, {
           amount: Math.round(order.finalAmount * 100), // Full refund in paise
           speed: 'normal',
           notes: {
-            reason: reason || 'Customer requested cancellation',
+            reason: customReason || reason || 'Customer requested cancellation',
             order_id: order._id.toString()
           }
         });
 
-        order.refundStatus = 'completed';
+        order.refundStatus = 'pending';
         order.refundId = refund.id;
         order.refundAmount = order.finalAmount;
+        order.refundReason = customReason || reason || 'Customer requested cancellation';
         order.refundDate = new Date();
-        order.paymentStatus = 'refunded';
+        
+        // Add timeline entry for refund
+        order.timeline.push({
+          event: 'Refund Initiated',
+          date: new Date(),
+          description: `Refund of ₹${order.finalAmount} initiated automatically`
+        });
+
+        console.log('✅ Refund initiated:', refund.id);
       } catch (refundError) {
         console.error('Refund error:', refundError);
-        order.refundStatus = 'requested';
+        order.refundStatus = 'pending';
+        order.refundAmount = order.finalAmount;
+        order.refundReason = customReason || reason || 'Customer requested cancellation';
+        
+        // Add timeline entry for refund failure
+        order.timeline.push({
+          event: 'Refund Failed',
+          date: new Date(),
+          description: 'Automatic refund failed. Manual processing required.'
+        });
       }
     }
 
     await order.save();
+
+    console.log('✅ Order cancelled successfully. Sending WhatsApp notifications...');
+    console.log('   - isPrepaid:', isPrepaid);
+    console.log('   - isCOD:', isCOD);
+    console.log('   - Payment Method:', order.paymentMethod);
+
+    // Send WhatsApp notifications
+    try {
+      if (isPrepaid) {
+        console.log('📱 Sending prepaid cancellation notifications...');
+        // Send admin notification for prepaid order
+        const adminResult = await sendAdminCancellationPrepaidNotification(order);
+        console.log('   - Admin notification result:', adminResult);
+        
+        // Send customer confirmation
+        const customerResult = await sendCustomerCancellationPrepaidConfirmation(order);
+        console.log('   - Customer notification result:', customerResult);
+        
+        // Add timeline entry for notifications
+        order.timeline.push({
+          event: 'Notifications Sent',
+          date: new Date(),
+          description: 'WhatsApp notifications sent to admin and customer'
+        });
+      } else if (isCOD) {
+        console.log('📱 Sending COD cancellation notifications...');
+        // Send admin notification for COD order
+        const adminResult = await sendAdminCancellationCODNotification(order);
+        console.log('   - Admin notification result:', adminResult);
+        
+        // Send customer confirmation
+        const customerResult = await sendCustomerCancellationCODConfirmation(order);
+        console.log('   - Customer notification result:', customerResult);
+        
+        // Add timeline entry for notifications
+        order.timeline.push({
+          event: 'Notifications Sent',
+          date: new Date(),
+          description: 'WhatsApp notifications sent to admin and customer'
+        });
+      }
+      
+      await order.save();
+      console.log('✅ WhatsApp notifications completed');
+    } catch (notificationError) {
+      console.error('❌ WhatsApp notification error:', notificationError);
+      console.error('   Stack:', notificationError.stack);
+      // Don't fail the cancellation if notification fails
+    }
 
     res.status(200).json({
       success: true,
@@ -534,60 +633,181 @@ export const processRefund = async (req, res) => {
     const { id } = req.params;
     const { amount, reason } = req.body;
 
+    console.log(`\n🔄 ========== REFUND DEBUG START ==========`);
+    console.log(`🔄 Initiating refund for order: ${id}`);
+
+    // Don't populate 'user' - it doesn't exist in Order schema
     const order = await Order.findById(id);
     if (!order) {
+      console.log(`❌ Order not found: ${id}`);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
       });
     }
 
+    console.log(`✅ Order found: ${order.orderNumber}`);
+    console.log(`📊 Order Details:`);
+    console.log(`   - Payment Method: ${order.paymentMethod}`);
+    console.log(`   - Payment Status: ${order.paymentStatus}`);
+    console.log(`   - Refund Status: ${order.refundStatus || 'none'}`);
+    console.log(`   - Payment ID: ${order.razorpayPaymentId || 'NOT FOUND'}`);
+    console.log(`   - Final Amount: ₹${order.finalAmount}`);
+
+    // Admin can initiate refund for any prepaid order (no need to be cancelled)
+    // Check if payment was successful (works for both 'online' and 'razorpay' payment methods)
     if (order.paymentStatus !== 'success') {
+      console.log(`❌ Payment not successful. Status: ${order.paymentStatus}`);
       return res.status(400).json({
         success: false,
-        message: 'Cannot refund unpaid order'
+        message: `Only successful prepaid orders can be refunded. Current payment status: ${order.paymentStatus}`
       });
     }
 
-    if (!order.razorpayPaymentId) {
+    // Check if this is actually a paid order (not COD or WhatsApp)
+    if (order.paymentMethod === 'cod' || order.paymentMethod === 'whatsapp') {
+      console.log(`❌ Cannot refund ${order.paymentMethod} orders`);
       return res.status(400).json({
         success: false,
-        message: 'Payment ID not found'
+        message: `COD and WhatsApp orders cannot be refunded through this system. Payment method: ${order.paymentMethod}`
       });
     }
 
-    // Process refund via Razorpay
-    const refundAmount = amount || order.finalAmount;
-    const refund = await razorpay.payments.refund(order.razorpayPaymentId, {
-      amount: Math.round(refundAmount * 100), // Convert to paise
-      speed: 'normal',
-      notes: {
-        reason: reason || 'Refund initiated by admin',
-        order_id: order._id.toString()
+    // Check if refund already initiated
+    if (order.refundStatus && order.refundStatus !== 'none') {
+      console.log(`❌ Refund already initiated. Status: ${order.refundStatus}`);
+      return res.status(400).json({
+        success: false,
+        message: `Refund already ${order.refundStatus}. Current status: ${order.refundStatus}`
+      });
+    }
+
+    // For prepaid orders, initiate payment gateway refund
+    const paymentId = order.razorpayPaymentId || order.paymentId;
+    
+    console.log(`🔍 Checking payment ID: ${paymentId ? 'FOUND' : 'NOT FOUND'}`);
+    
+    if (order.paymentStatus === 'success' && paymentId) {
+      try {
+        // Process refund via payment gateway (currently Razorpay)
+        const refundAmount = amount || order.finalAmount;
+        console.log(`💰 Processing payment gateway refund: ₹${refundAmount}`);
+        console.log(`💳 Using payment ID: ${paymentId}`);
+        
+        const refund = await razorpay.payments.refund(paymentId, {
+          amount: Math.round(refundAmount * 100), // Convert to paise
+          speed: 'normal',
+          notes: {
+            reason: reason || 'Refund initiated by admin',
+            order_id: order._id.toString()
+          }
+        });
+
+        console.log(`✅ Payment gateway refund created: ${refund.id}`);
+
+        // Set refund to PENDING (not completed immediately)
+        order.refundStatus = 'pending';
+        order.refundId = refund.id;
+        order.refundAmount = refundAmount;
+        order.refundReason = reason || 'Refund initiated by admin';
+        order.refundInitiatedAt = new Date();
+
+        // Automatically cancel the order when refund is initiated
+        order.orderStatus = 'cancelled';
+
+        // Add timeline entry
+        if (!order.timeline) order.timeline = [];
+        order.timeline.push({
+          event: 'Refund initiated',
+          date: new Date(),
+          description: `Admin initiated refund of ₹${refundAmount}. Refund ID: ${refund.id}`
+        });
+        order.timeline.push({
+          event: 'Order cancelled',
+          date: new Date(),
+          description: 'Order automatically cancelled due to refund initiation'
+        });
+
+        await order.save();
+
+        console.log(`✅ Order updated with refund status: pending and orderStatus: cancelled`);
+
+        res.status(200).json({
+          success: true,
+          message: 'Refund initiated successfully. Order has been cancelled.',
+          refund: {
+            refundId: refund.id,
+            amount: refundAmount,
+            status: 'pending',
+            razorpayStatus: refund.status
+          },
+          order: {
+            refundStatus: order.refundStatus,
+            refundAmount: order.refundAmount,
+            orderStatus: order.orderStatus,
+            refundInitiatedAt: order.refundInitiatedAt
+          }
+        });
+
+      } catch (paymentGatewayError) {
+        console.error('❌ Payment gateway refund failed:', paymentGatewayError);
+        console.error('❌ Error details:', paymentGatewayError.message);
+        console.log(`🔄 Marking refund as pending for manual processing`);
+        
+        // Still mark as pending even if payment gateway fails (can be processed manually)
+        order.refundStatus = 'pending';
+        order.refundAmount = amount || order.finalAmount;
+        order.refundReason = reason || 'Refund initiated by admin';
+        order.refundInitiatedAt = new Date();
+        order.refundError = paymentGatewayError.message;
+
+        // Automatically cancel the order when refund is initiated
+        order.orderStatus = 'cancelled';
+
+        if (!order.timeline) order.timeline = [];
+        order.timeline.push({
+          event: 'Refund initiated (manual processing required)',
+          date: new Date(),
+          description: `Payment gateway refund failed: ${paymentGatewayError.message}. Manual processing required.`
+        });
+        order.timeline.push({
+          event: 'Order cancelled',
+          date: new Date(),
+          description: 'Order automatically cancelled due to refund initiation'
+        });
+
+        await order.save();
+
+        console.log(`✅ Order saved with pending refund status and orderStatus: cancelled`);
+        console.log(`🔄 ========== REFUND DEBUG END (GATEWAY ERROR) ==========\n`);
+
+        return res.status(200).json({
+          success: true,
+          message: 'Refund marked as pending. Order has been cancelled. Payment gateway processing failed - manual action required.',
+          warning: paymentGatewayError.message,
+          order: {
+            refundStatus: order.refundStatus,
+            refundAmount: order.refundAmount,
+            orderStatus: order.orderStatus,
+            refundInitiatedAt: order.refundInitiatedAt
+          }
+        });
       }
-    });
 
-    // Update order
-    order.refundStatus = 'completed';
-    order.refundId = refund.id;
-    order.refundAmount = refundAmount;
-    order.refundReason = reason || 'Refund initiated by admin';
-    order.refundDate = new Date();
-    order.paymentStatus = 'refunded';
+    } else {
+      // Order doesn't have payment ID
+      console.log(`❌ No payment ID found. Cannot process refund.`);
+      console.log(`🔄 ========== REFUND DEBUG END (NO PAYMENT ID) ==========\n`);
+      return res.status(400).json({
+        success: false,
+        message: 'Payment ID not found. Cannot process refund for this order.'
+      });
+    }
 
-    await order.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Refund processed successfully',
-      refund: {
-        refundId: refund.id,
-        amount: refundAmount,
-        status: refund.status
-      }
-    });
   } catch (error) {
-    console.error('Process refund error:', error);
+    console.error('💥 Process refund error:', error);
+    console.error('💥 Error stack:', error.stack);
+    console.log(`🔄 ========== REFUND DEBUG END (EXCEPTION) ==========\n`);
     res.status(500).json({
       success: false,
       message: 'Failed to process refund',
@@ -766,6 +986,111 @@ export const getOrderStatistics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch statistics',
+      error: error.message
+    });
+  }
+};
+
+// Update refund status (admin only)
+export const updateRefundStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { refundStatus } = req.body;
+
+    if (!refundStatus) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refund status is required'
+      });
+    }
+
+    const validStatuses = ['none', 'pending', 'requested', 'processing', 'completed', 'rejected'];
+    if (!validStatuses.includes(refundStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid refund status'
+      });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    const oldStatus = order.refundStatus;
+    order.refundStatus = refundStatus;
+    order.updatedAt = new Date();
+
+    // Add timeline entry
+    if (!order.timeline) {
+      order.timeline = [];
+    }
+    order.timeline.push({
+      event: 'Refund Status Updated',
+      date: new Date(),
+      description: `Refund status changed from ${oldStatus} to ${refundStatus}`
+    });
+
+    // Handle status-specific updates
+    if (refundStatus === 'completed') {
+      // Mark refund as completed
+      order.paymentStatus = 'refunded';
+      order.refundDate = new Date();
+      
+      order.timeline.push({
+        event: 'Refund Completed',
+        date: new Date(),
+        description: `Refund of ₹${order.refundAmount || order.finalAmount} completed`
+      });
+    } else if (oldStatus === 'completed' && refundStatus === 'processing') {
+      // Undo completion - revert payment status back to success
+      order.paymentStatus = 'success';
+      order.refundDate = null;
+      
+      order.timeline.push({
+        event: 'Refund Completion Undone',
+        date: new Date(),
+        description: `Refund completion reverted. Status changed back to processing by admin.`
+      });
+      
+      console.log(`⚠️ Order ${id} refund completion undone. Payment status reverted to 'success'`);
+    }
+
+    await order.save();
+
+    // Send WhatsApp notification to customer
+    try {
+      if (refundStatus === 'processing' || refundStatus === 'completed') {
+        await sendRefundStatusUpdate(order, refundStatus);
+        
+        order.timeline.push({
+          event: 'Customer Notified',
+          date: new Date(),
+          description: `Customer notified about refund status: ${refundStatus}`
+        });
+        
+        await order.save();
+      }
+    } catch (notificationError) {
+      console.error('WhatsApp notification error:', notificationError);
+      // Don't fail the update if notification fails
+    }
+
+    console.log(`✅ Order ${id} refund status updated to: ${refundStatus}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Refund status updated successfully',
+      order
+    });
+  } catch (error) {
+    console.error('Update refund status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update refund status',
       error: error.message
     });
   }

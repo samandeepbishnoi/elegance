@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, AlertTriangle, Loader } from 'lucide-react';
+import { X, AlertTriangle, Loader, MessageCircle } from 'lucide-react';
 
 interface CancelOrderModalProps {
   orderId: string;
@@ -16,23 +16,42 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   onSuccess
 }) => {
   const [reason, setReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '919896076856';
 
   const predefinedReasons = [
-    'Changed my mind',
-    'Found a better price elsewhere',
     'Ordered by mistake',
+    'Found cheaper elsewhere',
     'Delivery taking too long',
-    'Product no longer needed',
+    'Changed my mind',
     'Other'
   ];
 
+  const handleContactWhatsApp = () => {
+    const message = `Hello! I have a query about my order before cancelling.
+
+Order Number: ${orderNumber}
+
+I would like to discuss my order before proceeding with cancellation.`;
+    
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleCancel = async () => {
-    if (!reason.trim()) {
-      setError('Please select or enter a cancellation reason');
+    // Validate that a reason is selected
+    if (!reason) {
+      setError('Please select a cancellation reason');
+      return;
+    }
+
+    // If "Other" is selected, custom reason must be provided
+    if (reason === 'Other' && !customReason.trim()) {
+      setError('Please specify your reason for cancellation');
       return;
     }
 
@@ -45,7 +64,11 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({ 
+          reason: reason === 'Other' ? 'Other' : reason,
+          customReason: reason === 'Other' ? customReason : '',
+          cancelledBy: 'customer'
+        })
       });
 
       const data = await response.json();
@@ -106,6 +129,29 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
 
           {/* Content */}
           <div className="p-6">
+            {/* Need Help Section */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-700 rounded-xl p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-2">
+                    Need help before cancelling?
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-300 mb-3">
+                    Talk to us on WhatsApp! We can help resolve any issues or answer questions about your order.
+                  </p>
+                  <button
+                    onClick={handleContactWhatsApp}
+                    type="button"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Contact Us on WhatsApp
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-xl p-4 mb-6">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
                 <strong>Important:</strong> Once you cancel this order, you cannot undo this action. If payment was made, a refund will be processed within 5-7 business days.
@@ -115,16 +161,22 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
             {/* Reason Selection */}
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                Why are you cancelling this order?
+                Why are you cancelling this order? <span className="text-red-500">*</span>
               </label>
               
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="space-y-2 mb-4">
                 {predefinedReasons.map((predefinedReason) => (
                   <button
                     key={predefinedReason}
                     type="button"
-                    onClick={() => setReason(predefinedReason)}
-                    className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                    onClick={() => {
+                      setReason(predefinedReason);
+                      if (predefinedReason !== 'Other') {
+                        setCustomReason('');
+                      }
+                      setError('');
+                    }}
+                    className={`w-full px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all text-left ${
                       reason === predefinedReason
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-red-300 dark:hover:border-red-600'
@@ -135,15 +187,23 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
                 ))}
               </div>
 
-              {/* Custom Reason */}
+              {/* Custom Reason Input */}
               {reason === 'Other' && (
-                <textarea
-                  value=""
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Please specify your reason..."
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none"
-                />
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Please specify your reason <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={customReason}
+                    onChange={(e) => {
+                      setCustomReason(e.target.value);
+                      setError('');
+                    }}
+                    placeholder="Enter your reason for cancellation..."
+                    rows={3}
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+                  />
+                </div>
               )}
             </div>
 
@@ -161,11 +221,11 @@ const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
                 disabled={loading}
                 className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Keep Order
+                Close
               </button>
               <button
                 onClick={handleCancel}
-                disabled={loading || !reason.trim()}
+                disabled={loading || !reason || (reason === 'Other' && !customReason.trim())}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (

@@ -86,4 +86,58 @@ export const userAPI = {
     api.delete(`/users/${clerkUserId}/wishlist`),
 };
 
+// Order API
+export const orderAPI = {
+  // Cancel order
+  cancelOrder: (orderId: string, reason: string, customReason?: string) =>
+    api.post(`/payment/orders/${orderId}/cancel`, {
+      reason,
+      customReason,
+      cancelledBy: 'customer'
+    }),
+  
+  // Get order by ID
+  getOrder: (orderId: string) => api.get(`/payment/orders/${orderId}`),
+  
+  // Get customer orders
+  getCustomerOrders: (email: string) => api.get(`/payment/orders`, { params: { email } }),
+};
+
+// Admin Order API
+export const adminOrderAPI = {
+  // Get all orders
+  getAllOrders: (token: string, params?: any) =>
+    api.get('/payment/admin/orders', {
+      headers: { Authorization: `Bearer ${token}` },
+      params
+    }),
+  
+  // Get order statistics
+  getStatistics: (token: string) =>
+    api.get('/payment/admin/statistics', {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  
+  // Update order status
+  updateOrderStatus: (token: string, orderId: string, status: string) =>
+    api.put(`/payment/admin/orders/${orderId}/status`, 
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    ),
+  
+  // Update refund status
+  updateRefundStatus: (token: string, orderId: string, refundStatus: string) =>
+    api.put(`/payment/admin/orders/${orderId}/refund-status`,
+      { refundStatus },
+      { headers: { Authorization: `Bearer ${token}` } }
+    ),
+  
+  // Process refund
+  processRefund: (token: string, orderId: string, amount?: number, reason?: string) =>
+    api.post(`/payment/admin/orders/${orderId}/refund`,
+      { amount, reason },
+      { headers: { Authorization: `Bearer ${token}` } }
+    ),
+};
+
 export default api;

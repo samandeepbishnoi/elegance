@@ -138,7 +138,7 @@ const orderSchema = new mongoose.Schema({
   // Refund Information
   refundStatus: {
     type: String,
-    enum: ['none', 'requested', 'processing', 'completed', 'rejected'],
+    enum: ['none', 'pending', 'requested', 'processing', 'completed', 'rejected'],
     default: 'none'
   },
   refundId: {
@@ -154,8 +154,25 @@ const orderSchema = new mongoose.Schema({
   refundDate: {
     type: Date
   },
+  refundInitiatedAt: {
+    type: Date
+  },
+  refundError: {
+    type: String
+  },
 
   // Cancellation
+  cancelledBy: {
+    type: String,
+    enum: ['customer', 'admin', 'system'],
+    default: null
+  },
+  cancelReason: {
+    type: String
+  },
+  customCancelReason: {
+    type: String
+  },
   cancellationReason: {
     type: String
   },
@@ -172,6 +189,21 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+
+  // Timeline tracking
+  timeline: [{
+    event: {
+      type: String,
+      required: true
+    },
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    description: {
+      type: String
+    }
+  }],
 
   // Timestamps
   createdAt: {
