@@ -19,7 +19,7 @@ const ProductFilters: React.FC<FilterProps> = ({
   onClearFilters,
 }) => {
   const MIN_PRICE = 1;
-  const MAX_PRICE = 500000;
+  const MAX_PRICE = 25000;
 
   const [minValue, setMinValue] = useState(priceRange[0]);
   const [maxValue, setMaxValue] = useState(priceRange[1]);

@@ -25,7 +25,7 @@ const Homepage: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([1, 500000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([1, 25000]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
@@ -124,7 +124,7 @@ const Homepage: React.FC = () => {
 
   const handleClearFilters = () => {
     setSelectedCategory('all');
-    setPriceRange([1, 500000]);
+    setPriceRange([1, 25000]);
   };
 
   if (loading) {
