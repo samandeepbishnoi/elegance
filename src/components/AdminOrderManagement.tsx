@@ -112,6 +112,15 @@ const AdminOrderManagement: React.FC = () => {
   // Fetch orders
   const fetchOrders = async (silent = false) => {
     try {
+      if (!token) {
+        console.error('❌ No admin token found');
+        toast.error('Authentication required. Please log in again.', {
+          duration: 4000,
+          position: 'top-center',
+        });
+        return;
+      }
+      
       if (!silent) {
         setLoading(true);
       } else {
@@ -119,6 +128,7 @@ const AdminOrderManagement: React.FC = () => {
       }
       
       console.log('🔄 Fetching orders from:', `${backendUrl}/api/payment/admin/orders`);
+      console.log('🔑 Using token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
       
       const response = await fetch(`${backendUrl}/api/payment/admin/orders`, {
         headers: {
@@ -126,7 +136,13 @@ const AdminOrderManagement: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('❌ API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch orders');
+      }
 
       const data = await response.json();
       console.log('✅ Fetched orders:', data.orders?.length || 0);
@@ -143,10 +159,21 @@ const AdminOrderManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('❌ Error fetching orders:', error);
-      toast.error('Failed to load orders', {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load orders';
+      toast.error(errorMessage, {
         duration: 4000,
         position: 'top-center',
       });
+      
+      // If it's an authentication error, suggest re-login
+      if (errorMessage.includes('token') || errorMessage.includes('Invalid') || errorMessage.includes('expired')) {
+        setTimeout(() => {
+          toast.error('Please log out and log in again', {
+            duration: 6000,
+            position: 'top-center',
+          });
+        }, 1000);
+      }
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -156,13 +183,24 @@ const AdminOrderManagement: React.FC = () => {
   // Fetch statistics
   const fetchStatistics = async () => {
     try {
+      if (!token) {
+        console.error('❌ No admin token found for statistics');
+        return;
+      }
+      
       const response = await fetch(`${backendUrl}/api/payment/admin/statistics`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch statistics');
+      console.log('📊 Statistics response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('❌ Statistics API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch statistics');
+      }
 
       const data = await response.json();
       setStatistics(data.statistics);

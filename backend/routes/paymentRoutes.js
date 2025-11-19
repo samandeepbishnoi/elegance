@@ -15,11 +15,11 @@ router.get('/orders', paymentController.getCustomerOrders);
 router.get('/orders/:id', paymentController.getOrderById);
 router.post('/orders/:id/cancel', paymentController.cancelOrder);
 
-// Admin routes (require authentication)
-router.get('/admin/orders', authenticateMainAdmin, paymentController.getAllOrders);
-router.get('/admin/statistics', authenticateMainAdmin, paymentController.getOrderStatistics);
-router.put('/admin/orders/:id/status', authenticateMainAdmin, paymentController.updateOrderStatus);
-router.put('/admin/orders/:id/refund-status', authenticateMainAdmin, paymentController.updateRefundStatus);
-router.post('/admin/orders/:id/refund', authenticateMainAdmin, paymentController.processRefund);
+// Admin routes (require authentication - works for all approved admins)
+router.get('/admin/orders', authenticateToken, paymentController.getAllOrders);
+router.get('/admin/statistics', authenticateToken, paymentController.getOrderStatistics);
+router.put('/admin/orders/:id/status', authenticateToken, paymentController.updateOrderStatus);
+router.put('/admin/orders/:id/refund-status', authenticateToken, paymentController.updateRefundStatus);
+router.post('/admin/orders/:id/refund', authenticateToken, paymentController.processRefund);
 
 export default router;
