@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown, Phone, Mail, MapPin } from 'lucide-react';
+import { Crown, Phone, Mail, MapPin, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -15,6 +15,22 @@ const Footer: React.FC = () => {
             <p className="text-gray-300 mb-4">
               Premium and exclusive imitation jewellery wholesaler. Serving retailers and bulk buyers with high-quality designs at competitive wholesale prices. Worldwide shipping available with online payment accepted.
             </p>
+            
+            {/* Instagram Section */}
+            <div className="mt-6">
+              <a 
+                href="https://instagram.com/parika_jewels" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group inline-flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300 hover:scale-105 w-full sm:w-auto justify-center sm:justify-start"
+              >
+                <Instagram className="h-4 w-4 sm:h-5 sm:w-5 text-white animate-pulse flex-shrink-0" />
+                <div className="flex flex-col items-start">
+                  <span className="text-white font-semibold text-xs sm:text-sm">Follow Us on Instagram</span>
+                  <span className="text-white/90 text-[10px] sm:text-xs">@parika_jewels</span>
+                </div>
+              </a>
+            </div>
           </div>
 
           {/* Contact Info */}
