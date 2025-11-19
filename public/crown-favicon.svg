@@ -1,0 +1,88 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clean white background with subtle shadow -->
+  <rect width="64" height="64" rx="14" fill="white"/>
+  <rect width="64" height="64" rx="14" fill="url(#bgGradient)"/>
+  
+  <!-- Diamond shape - main body -->
+  <g filter="url(#glow)">
+    <!-- Top facets -->
+    <path d="M32 12L42 26H22L32 12Z" fill="url(#diamondTop)" stroke="#DAA520" stroke-width="0.8" stroke-linejoin="round"/>
+    
+    <!-- Middle band -->
+    <path d="M22 26L18 32H46L42 26H22Z" fill="url(#diamondMid)" stroke="#DAA520" stroke-width="0.8"/>
+    
+    <!-- Bottom facets (creating depth) -->
+    <path d="M18 32L32 50L46 32H18Z" fill="url(#diamondBottom)"/>
+    
+    <!-- Inner facets for depth -->
+    <path d="M32 12L37 26L32 32L27 26L32 12Z" fill="url(#centerFacet)" opacity="0.8"/>
+    <path d="M32 32L37 26H42L46 32L32 50V32Z" fill="#8B6914" opacity="0.2"/>
+    <path d="M32 32L27 26H22L18 32L32 50V32Z" fill="#6B5410" opacity="0.3"/>
+    
+    <!-- Highlight lines for sparkle -->
+    <line x1="32" y1="14" x2="32" y2="26" stroke="white" stroke-width="1.5" opacity="0.9" stroke-linecap="round"/>
+    <line x1="28" y1="28" x2="22" y2="32" stroke="white" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+    <line x1="36" y1="28" x2="42" y2="32" stroke="white" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Sparkle effects around diamond -->
+  <g opacity="0.95">
+    <path d="M16 20L17 22L19 23L17 24L16 26L15 24L13 23L15 22L16 20Z" fill="#FFD700">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M48 18L49 20L51 21L49 22L48 24L47 22L45 21L47 20L48 18Z" fill="#FFA500">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2.5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M20 44L21 46L23 47L21 48L20 50L19 48L17 47L19 46L20 44Z" fill="#DAA520">
+      <animate attributeName="opacity" values="0.3;0.9;0.3" dur="3s" repeatCount="indefinite"/>
+    </path>
+    <path d="M44 46L45 48L47 49L45 50L44 52L43 50L41 49L43 48L44 46Z" fill="#FFD700">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  
+  <!-- Subtle shine effect -->
+  <ellipse cx="28" cy="20" rx="4" ry="6" fill="white" opacity="0.4" transform="rotate(-20 28 20)"/>
+  
+  <!-- Gradients and effects -->
+  <defs>
+    <!-- Light background gradient -->
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" style="stop-color:#FFFEF5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFF9E6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Diamond top gradient -->
+    <linearGradient id="diamondTop" x1="32" y1="12" x2="32" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" style="stop-color:#FFFACD;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Diamond middle gradient -->
+    <linearGradient id="diamondMid" x1="18" y1="29" x2="46" y2="29" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" style="stop-color:#DAA520;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Diamond bottom gradient -->
+    <linearGradient id="diamondBottom" x1="32" y1="32" x2="32" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF8C00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8860B;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Center facet gradient -->
+    <linearGradient id="centerFacet" x1="32" y1="12" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0.6" />
+    </linearGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+</svg>
